@@ -1,0 +1,21 @@
+exec: {}
+in:
+  type: http
+  url: http://express.heartrails.com/api/json
+  params:
+    - {name: method, value: getStations}
+    - {name: x, value: 135.0}
+    - {name: y, value: 35.0}
+  schema:
+    - {name: name, type: string}
+    - {name: next, type: string}
+    - {name: prev, type: string}
+    - {name: distance, type: string}
+    - {name: x, type: double}
+    - {name: y, type: double}
+    - {name: line, type: string}
+    - {name: postal, type: string}
+  method: get
+  iterate: {type: json, path: $.response.station}
+out: {type: stdout}
+
