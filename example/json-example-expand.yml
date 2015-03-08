@@ -4,8 +4,8 @@ in:
   url: http://express.heartrails.com/api/json
   params:
     - {name: method, value: getStations}
-    - {name: x, value: 135.0}
-    - {name: y, value: 35.0}
+    - {name: x, value: "{130..135}.0", expand: true}
+    - {name: y, value: "{30..35}.0", expand: true}
   schema:
     - {name: name, type: string}
     - {name: next, type: string}
