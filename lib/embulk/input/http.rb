@@ -45,8 +45,9 @@ module Embulk
         iterate = @task["iterate"]
 
         data = fetch.body
+        data_type = iterate["type"]
 
-        case iterate["type"]
+        case data_type
         when "json"
           iter = IterJson.new(data, iterate["path"])
         when "xml"
@@ -72,11 +73,7 @@ module Embulk
             when "boolean"
               ["yes", "true", "1"].include?(val)
             when "timestamp"
-              if val.nil? || val.empty?
-                nil
-              else
-                Time.strptime(val, c["format"])
-              end
+              (val.nil? || val.empty?) ? nil : Time.strptime(val, c["format"])
             else
               raise "Unsupported type #{type}"
             end
@@ -92,9 +89,8 @@ module Embulk
       def fetch
         uri = URI.parse(@task["url"])
         method = @task["method"]
-        qs = URI.encode_www_form(@task["params"].inject({}) {|memo, p|
-          memo[p["name"]] = p["value"]
-          memo
+        qs = URI.encode_www_form(@task["params"].map {|p|
+            [p["name"], p["value"]]
         })
         puts "#{method.upcase} #{uri}?#{qs}"
 

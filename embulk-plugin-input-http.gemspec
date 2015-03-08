@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "embulk-plugin-input-http"
-  spec.version       = "0.0.1"
+  spec.version       = "0.0.2"
   spec.authors       = ["Takuma kanari"]
   spec.email         = ["chemtrails.t@gmail.com"]
   spec.summary       = %q{Embulk plugin for http input}
