@@ -1,0 +1,258 @@
+package org.embulk.input;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
+import org.apache.http.Header;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.embulk.config.*;
+import org.embulk.spi.BufferAllocator;
+import org.embulk.spi.Exec;
+import org.embulk.spi.FileInputPlugin;
+import org.embulk.spi.TransactionalFileInput;
+import org.embulk.spi.util.InputStreamFileInput;
+import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HttpInputPlugin implements FileInputPlugin {
+
+    private final Logger logger = Exec.getLogger(getClass());
+
+    public interface PluginTask extends Task {
+        @Config("url")
+        public String getUrl();
+
+        @Config("charset")
+        @ConfigDefault("\"utf-8\"")
+        public String getCharset();
+
+        @Config("method")
+        @ConfigDefault("\"get\"")
+        public String getMethod();
+
+        @Config("user_agent")
+        @ConfigDefault("\"Embulk::Input::HttpInputPlugin\"")
+        public String getUserAgent();
+
+        @Config("open_timeout")
+        @ConfigDefault("2000")
+        public int getOpenTimeout();
+
+        @Config("read_timeout")
+        @ConfigDefault("10000")
+        public int getReadTimeout();
+
+        @Config("params")
+        @ConfigDefault("null")
+        public Optional<ParamsConfig> getParams();
+
+        @ConfigInject
+        public BufferAllocator getBufferAllocator();
+
+        public List<ParamsConfig> getQueries();
+        public void setQueries(List<ParamsConfig> queries);
+
+        public HttpMethod getHttpMethod();
+        public void setHttpMethod(HttpMethod httpMethod);
+    }
+
+    public enum HttpMethod {
+        POST,
+        GET
+    }
+
+    @Override
+    public ConfigDiff transaction(ConfigSource config, FileInputPlugin.Control control) {
+        PluginTask task = config.loadConfig(PluginTask.class);
+
+        int numOfThreads = 1;
+        if (task.getParams().isPresent()) {
+            List<ParamsConfig> expandedQueries = task.getParams().get().expandQueries();
+            task.setQueries(expandedQueries);
+            numOfThreads = expandedQueries.size();
+        } else {
+            task.setQueries(new ArrayList<ParamsConfig>());
+        }
+
+        switch (task.getMethod().toUpperCase()) {
+            case "GET":
+                task.setHttpMethod(HttpMethod.GET);
+                break;
+            case "POST":
+                task.setHttpMethod(HttpMethod.POST);
+                break;
+            default:
+                throw new ConfigException(String.format("Unsupported http method %s", task.getMethod()));
+        }
+
+        return resume(task.dump(), numOfThreads, control);
+    }
+
+    @Override
+    public ConfigDiff resume(TaskSource taskSource,
+                             int taskCount,
+                             FileInputPlugin.Control control) {
+        control.run(taskSource, taskCount);
+        return Exec.newConfigDiff();
+    }
+
+    @Override
+    public void cleanup(TaskSource taskSource,
+                        int taskCount,
+                        List<CommitReport> successCommitReports) {
+    }
+
+    @Override
+    public TransactionalFileInput open(TaskSource taskSource, int taskIndex) {
+        PluginTask task = taskSource.loadTask(PluginTask.class);
+
+        HttpRequestBase request;
+        try {
+            request = makeRequest(task, taskIndex);
+        } catch (URISyntaxException | UnsupportedEncodingException e) {
+            throw Throwables.propagate(e);
+        }
+        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
+                request.getURI().toString()));
+
+        HttpClient client = HttpClientBuilder.create()
+                .setDefaultRequestConfig(makeRequestConfig(task))
+                .setDefaultHeaders(makeHeaders(task))
+                .build();
+        try {
+            HttpResponse response = client.execute(request);
+            statusIsOkOrThrow(response);
+            InputStream stream = response.getEntity().getContent();
+            PluginFileInput input = new PluginFileInput(task, stream);
+            stream = null;
+            return input;
+        } catch (IOException | HttpException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
+            throws URISyntaxException, UnsupportedEncodingException {
+        final ParamsConfig paramsConfig = (task.getQueries().isEmpty()) ?
+                null : task.getQueries().get(taskIndex);
+        if (task.getHttpMethod() == HttpMethod.GET) {
+            HttpGet request = new HttpGet(task.getUrl());
+            if (paramsConfig != null) {
+                URIBuilder builder = new URIBuilder(request.getURI());
+                for (QueryConfig p : paramsConfig.getQueries()) {
+                    builder.addParameter(p.getName(), p.getValue());
+                }
+                request.setURI(builder.build());
+            }
+            return request;
+        } else if (task.getHttpMethod() == HttpMethod.POST) {
+            HttpPost request = new HttpPost(task.getUrl());
+            if (paramsConfig != null) {
+                List<NameValuePair> pairs = new ArrayList<>();
+                for (QueryConfig p : paramsConfig.getQueries()) {
+                    pairs.add(new BasicNameValuePair(p.getName(), p.getValue()));
+                }
+                request.setEntity(new UrlEncodedFormEntity(pairs));
+            }
+            return request;
+        }
+        throw new IllegalArgumentException(String.format("Unsupported http method %s", task.getMethod()));
+    }
+
+    private List<Header> makeHeaders(PluginTask task) {
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Accept", "*/*"));
+        headers.add(new BasicHeader("Accept-Charset", task.getCharset()));
+        headers.add(new BasicHeader("Accept-Encoding", "gzip, deflate"));
+        headers.add(new BasicHeader("Accept-Language", "en-us,en;q=0.5"));
+        headers.add(new BasicHeader("User-Agent", task.getUserAgent()));
+        return headers;
+    }
+
+    private RequestConfig makeRequestConfig(PluginTask task) {
+        return RequestConfig.custom()
+                .setCircularRedirectsAllowed(true)
+                .setMaxRedirects(10)
+                .setRedirectsEnabled(true)
+                .setConnectTimeout(task.getOpenTimeout())
+                .setSocketTimeout(task.getReadTimeout())
+                .build();
+    }
+
+    private void statusIsOkOrThrow(HttpResponse response)
+            throws HttpException, IOException {
+        int code = response.getStatusLine().getStatusCode();
+        switch (response.getStatusLine().getStatusCode()) {
+            case 200:
+                return;
+            default:
+                throw new HttpException(String.format("Request is not successful, code=%d, body=%s",
+                        code, EntityUtils.toString(response.getEntity())));
+        }
+    }
+
+    public static class PluginFileInput extends InputStreamFileInput
+            implements TransactionalFileInput {
+
+        private static class SingleFileProvider
+                implements InputStreamFileInput.Provider {
+
+            private InputStream stream;
+            private boolean opened = false;
+
+            public SingleFileProvider(InputStream stream) {
+                this.stream = stream;
+            }
+
+            @Override
+            public InputStream openNext() throws IOException {
+                if (opened) {
+                    return null;
+                }
+                opened = true;
+                return stream;
+            }
+
+            @Override
+            public void close() throws IOException {
+                if (!opened) {
+                    stream.close();
+                }
+            }
+        }
+
+        public PluginFileInput(PluginTask task, InputStream stream) {
+            super(task.getBufferAllocator(), new SingleFileProvider(stream));
+        }
+
+        public void abort() {
+        }
+
+        public CommitReport commit() {
+            return Exec.newCommitReport();
+        }
+
+        @Override
+        public void close() {
+        }
+    }
+
+}

@@ -1,0 +1,55 @@
+plugins {
+    id "com.jfrog.bintray" version "1.1"
+    id "com.github.jruby-gradle.base" version "0.1.5"
+    id "java"
+}
+import com.github.jrubygradle.JRubyExec
+repositories {
+    mavenCentral()
+    jcenter()
+}
+configurations {
+    provided
+}
+
+version = "0.0.4"
+
+dependencies {
+    compile  "org.embulk:embulk-core:0.5.2"
+    compile  "org.apache.httpcomponents:httpclient:4.4"
+    provided "org.embulk:embulk-core:0.5.2"
+    testCompile "junit:junit:4.+"
+}
+
+task classpath(type: Copy, dependsOn: ["jar"]) {
+    doFirst { file("classpath").deleteDir() }
+    from (configurations.runtime - configurations.provided + files(jar.archivePath))
+    into "classpath"
+}
+clean { delete 'classpath' }
+
+task gem(type: JRubyExec, dependsOn: ["build", "gemspec", "classpath"]) {
+    jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "build"
+    script "build/gemspec"
+    doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }
+}
+
+task gemspec << { file("build/gemspec").write($/
+Gem::Specification.new do |spec|
+  spec.name          = "${project.name}"
+  spec.version       = "${project.version}"
+  spec.authors       = ["Takuma kanari"]
+  spec.email         = ["chemtrails.t@gmail.com"]
+  spec.summary       = %q{Embulk plugin for http input}
+  spec.description   = %q{Fetch data via http}
+  spec.homepage      = "https://github.com/takumakanari/embulk-input-http"
+  spec.license       = "MIT"
+
+  spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
+  spec.test_files    = spec.files.grep(%r"^(test|spec)/")
+  spec.require_paths = ["lib"]
+  spec.add_development_dependency 'bundler', ['~> 1.0']
+  spec.add_development_dependency 'rake', ['>= 10.0']
+end
+/$)
+}
