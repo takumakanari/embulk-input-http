@@ -5,8 +5,12 @@ import com.google.common.base.Throwables;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -27,6 +31,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -60,6 +65,19 @@ public class HttpInputPlugin implements FileInputPlugin {
         @ConfigDefault("10000")
         public int getReadTimeout();
 
+        @Config("max_retries")
+        @ConfigDefault("5")
+        public int getMaxRetries();
+
+        @Config("retry_interval")
+        @ConfigDefault("10000")
+        public int getRetryInterval();
+
+        @Config("sleep_before_request")
+        @ConfigDefault("0")
+        public int getSleepBeforeRequest();
+        public void setSleepBeforeRequest(int sleepBeforeRequest);
+
         @Config("params")
         @ConfigDefault("null")
         public Optional<ParamsConfig> getParams();
@@ -90,6 +108,10 @@ public class HttpInputPlugin implements FileInputPlugin {
             numOfThreads = expandedQueries.size();
         } else {
             task.setQueries(new ArrayList<ParamsConfig>());
+        }
+
+        if (numOfThreads == 1) {
+            task.setSleepBeforeRequest(0);
         }
 
         switch (task.getMethod().toUpperCase()) {
@@ -130,16 +152,35 @@ public class HttpInputPlugin implements FileInputPlugin {
         } catch (URISyntaxException | UnsupportedEncodingException e) {
             throw Throwables.propagate(e);
         }
+
+        HttpClientBuilder builder = HttpClientBuilder.create()
+                .setDefaultRequestConfig(makeRequestConfig(task))
+                .setDefaultHeaders(makeHeaders(task));
+
+        if (task.getMaxRetries() > 0) {
+            final int retry = task.getMaxRetries();
+            final int interval = task.getRetryInterval();
+            HttpRequestRetryHandler retryHandler = new RetryHandler(retry, interval);
+            builder.setRetryHandler(retryHandler);
+        }
+
+        HttpClient client = builder.build();
+
+        if (task.getSleepBeforeRequest() > 0) {
+            try {
+                logger.info(String.format("Waiting %d msec ...", task.getSleepBeforeRequest()));
+                Thread.sleep(task.getSleepBeforeRequest());
+            } catch (InterruptedException e) {
+            }
+        }
+
         logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
                 request.getURI().toString()));
-
-        HttpClient client = HttpClientBuilder.create()
-                .setDefaultRequestConfig(makeRequestConfig(task))
-                .setDefaultHeaders(makeHeaders(task))
-                .build();
         try {
             HttpResponse response = client.execute(request);
             statusIsOkOrThrow(response);
+            //final String body = EntityUtils.toString(response.getEntity());
+            //InputStream stream = new ByteArrayInputStream(body.getBytes());
             InputStream stream = response.getEntity().getContent();
             PluginFileInput input = new PluginFileInput(task, stream);
             stream = null;

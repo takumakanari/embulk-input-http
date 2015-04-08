@@ -4,10 +4,6 @@ Input HTTP plugin for [Embulk](https://github.com/embulk/embulk).
 Fetch data via HTTP.
 
 
-### Big changes in v0.0.4
-
-From `v0.0.4`, *iterate* section is removed, embulk-input-http is must be used with some **parer plugin**.
-
 ## Installation
 
 Run this command with your embulk binary.
@@ -40,7 +36,9 @@ in:
 - **charset**: Charset to specify request header (optional, utf-8 is used by default)
 - **open_timeout**: timeout msec to open connection (optional, 2000 is used by default)
 - **read_timeout**: timeout msec to read content via http (optional, 10000 is used by default)
-
+- **max_retries**: max number of retry request if failed (optional, 5 is used by default)
+- **retry_interval**: interval msec to retry max (optional, 10000 is used by default)
+- **sleep\_before\_request**: wait msec before each requests (optional, 0 is used by default)
 
 ### Brace expansion style in params
 
