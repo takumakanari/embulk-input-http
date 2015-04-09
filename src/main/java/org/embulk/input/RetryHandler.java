@@ -31,11 +31,14 @@ public class RetryHandler extends DefaultHttpRequestRetryHandler
     public boolean retryRequest(final IOException exception,
                                 final int executionCount, final HttpContext context)
     {
-        try {
-            logger.info(String.format("Sleep %d msec before retry", interval));
-            Thread.sleep(interval);
-        } catch (InterruptedException e) {}
-        return super.retryRequest(exception, executionCount, context);
+        final boolean isRertriable = super.retryRequest(exception, executionCount, context);
+        if (isRertriable) {
+            try {
+                logger.info(String.format("Sleep %d msec before retry", interval));
+                Thread.sleep(interval);
+            } catch (InterruptedException e) {}
+        }
+        return isRertriable;
     }
 
 }
