@@ -29,7 +29,6 @@ in:
 
 - **type**: specify this plugin as `http`
 - **url**: base url something like api (required)
-- **parser**: parser plugin to parse data in response (required)
 - **params**: pair of name/value to specify query parameter (optional)
 - **method**: http method, get is used by default (optional)
 - **user_agent**: the usrr agent to specify request header (optional)
