@@ -5,7 +5,11 @@ import com.google.common.base.Throwables;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.NameValuePair;
@@ -81,6 +85,10 @@ public class HttpInputPlugin implements FileInputPlugin {
         @Config("params")
         @ConfigDefault("null")
         public Optional<ParamsConfig> getParams();
+
+        @Config("basic_auth")
+        @ConfigDefault("null")
+        public Optional<BasicAuthConfig> getBasicAuth();
 
         @ConfigInject
         public BufferAllocator getBufferAllocator();
@@ -164,6 +172,11 @@ public class HttpInputPlugin implements FileInputPlugin {
             builder.setRetryHandler(retryHandler);
         }
 
+        if (task.getBasicAuth().isPresent()) {
+            builder.setDefaultCredentialsProvider(makeCredentialsProvider(task.getBasicAuth().get(),
+                    request));
+        }
+
         HttpClient client = builder.build();
 
         if (task.getSleepBeforeRequest() > 0) {
@@ -188,6 +201,15 @@ public class HttpInputPlugin implements FileInputPlugin {
         } catch (IOException | HttpException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest) {
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final AuthScope authScope = new AuthScope(scopeRequest.getURI().getHost(),
+                scopeRequest.getURI().getPort());
+        credentialsProvider.setCredentials(authScope,
+                new UsernamePasswordCredentials(config.getUser(), config.getPassword()));
+        return credentialsProvider;
     }
 
     private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
