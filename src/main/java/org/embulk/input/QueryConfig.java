@@ -112,7 +112,9 @@ public class QueryConfig {
                 if (suffix.length() > 0) {
                     expandRecursive(prefix + s, suffix, "", dest);
                 } else {
-                    dest.add(String.format("%s%s%s", prefix, s, suffix));
+                    final String out = String.format("%s%s%s", prefix, s, suffix).
+                            replaceAll("[\\\\]{2}", "\\").replaceAll("[\\\\]([,}{])", "$1");
+                    dest.add(out);
                 }
             } else {
                 for (String m : sb.substring(i1 + 1, i2).split("\u0000", -1)) {
