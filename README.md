@@ -32,7 +32,8 @@ in:
 - **params**: pair of name/value to specify query parameter (optional)
 - **method**: http method, get is used by default (optional)
 - **user_agent**: the usrr agent to specify request header (optional)
-- **charset**: Charset to specify request header (optional, utf-8 is used by default)
+- **charset**: charset to specify request header (optional, utf-8 is used by default)
+- **basic_auth**: username/password for basic authentication (optional)
 - **open_timeout**: timeout msec to open connection (optional, 2000 is used by default)
 - **read_timeout**: timeout msec to read content via http (optional, 10000 is used by default)
 - **max_retries**: max number of retry request if failed (optional, 5 is used by default)
@@ -44,12 +45,23 @@ in:
 In *params* section, you can specify also multilple params by using **brace expansion style**.
 
 ```yaml
-params
+params:
   - {name: id, value "{5,4,3,2,1}", expand: true}
   - {name: name, value "{John,Paul,George,Ringo}", expand: true}
 ```
 
 To use this style, you need to set true to parameter *expand*, then all patterns of query will be called in a defferent request.
+
+
+### Use basic authentication
+
+You can specify username/password for basic authentication.
+
+```yaml
+basic_auth:
+ - user: MyUser
+ - password: MyPassword
+```
 
 
 ## Example
@@ -102,7 +114,6 @@ in:
 ```
 
 ## TODO
-- BasicAuth
 - HTTP-proxy
 - Custom hedaers
 - Guess
