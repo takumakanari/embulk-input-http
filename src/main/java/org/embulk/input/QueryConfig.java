@@ -3,6 +3,7 @@ package org.embulk.input;
 import com.google.common.base.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,28 +12,39 @@ public class QueryConfig {
 
     private final String name;
     private final String value;
+    private final List<String> values;
     private final boolean expand;
 
     @JsonCreator
     public QueryConfig(
             @JsonProperty("name") String name,
             @JsonProperty("value") String value,
+            @JsonProperty("values") List<String> values,
             @JsonProperty("expand") boolean expand) {
         this.name = name;
         this.value = value;
+        this.values = values;
         this.expand = expand;
     }
 
     public List<QueryConfig> expand() {
         List<QueryConfig> dest;
         if (!expand) {
-            dest = new ArrayList<>(1);
-            dest.add(this);
+            if (values != null && !values.isEmpty()) {
+                dest = new ArrayList<>(values.size());
+                for (String s : values) {
+                    dest.add(new QueryConfig(name, s, null, false));
+                }
+            } else if (value != null) {
+                dest = Lists.newArrayList(this);
+            } else {
+                throw new IllegalArgumentException("value or values must be specified to 'params'");
+            }
         } else {
             List<String> expanded = BraceExpansion.expand(value);
             dest = new ArrayList<>(expanded.size());
             for(String s : expanded) {
-                dest.add(new QueryConfig(name, s, false));
+                dest.add(new QueryConfig(name, s, null, false));
             }
         }
         return dest;

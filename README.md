@@ -42,7 +42,18 @@ in:
 
 ### Brace expansion style in params
 
-In *params* section, you can specify also multilple params by using **brace expansion style**.
+In *params* section, you can specify also multilple params by using **values** or **brace expansion style**.
+
+The configuration using **values** is as below:
+
+```yaml
+params:
+  - {name: id, values [5, 4, 3, 2, 1]}
+  - {name: name, values [John, Paul, George, Ringo]}
+```
+
+Also You can rewrite this configuration by using **brace expansion style** like as follows:
+
 
 ```yaml
 params:
