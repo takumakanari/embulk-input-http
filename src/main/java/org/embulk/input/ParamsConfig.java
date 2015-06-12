@@ -21,8 +21,8 @@ public class ParamsConfig {
         return queries;
     }
 
-    public List<ParamsConfig> expandQueries() {
-        List<List<QueryConfig>> base = new ArrayList<>(queries.size());
+    public List<List<QueryConfig.Query>> expandQueries() {
+        List<List<QueryConfig.Query>> base = new ArrayList<>(queries.size());
         for (QueryConfig p : queries) {
             base.add(p.expand());
         }
@@ -31,16 +31,16 @@ public class ParamsConfig {
         int baseSize = base.size();
         for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++);
 
-        List<ParamsConfig> expands = new ArrayList<>(productSize);
+        List<List<QueryConfig.Query>> expands = new ArrayList<>(productSize);
         for(int i = 0; i < productSize; i++) {
             int j = 1;
-            List<QueryConfig> query = new ArrayList<>();
-            for(List<QueryConfig> list : base) {
-                QueryConfig pc = list.get((i / j) % list.size());
+            List<QueryConfig.Query> query = new ArrayList<>();
+            for(List<QueryConfig.Query> list : base) {
+                QueryConfig.Query pc = list.get((i / j) % list.size());
                 query.add(pc);
                 j *= list.size();
             }
-            expands.add(new ParamsConfig(query));
+            expands.add(query);
         }
 
         return expands;

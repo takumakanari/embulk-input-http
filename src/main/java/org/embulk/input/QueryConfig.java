@@ -1,8 +1,9 @@
 package org.embulk.input;
 
-import com.google.common.base.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -11,15 +12,15 @@ import java.util.List;
 public class QueryConfig {
 
     private final String name;
-    private final String value;
-    private final List<String> values;
+    private final Optional<String> value;
+    private final Optional<List<String>> values;
     private final boolean expand;
 
     @JsonCreator
     public QueryConfig(
             @JsonProperty("name") String name,
-            @JsonProperty("value") String value,
-            @JsonProperty("values") List<String> values,
+            @JsonProperty("value") Optional<String> value,
+            @JsonProperty("values") Optional<List<String>> values,
             @JsonProperty("expand") boolean expand) {
         this.name = name;
         this.value = value;
@@ -27,24 +28,24 @@ public class QueryConfig {
         this.expand = expand;
     }
 
-    public List<QueryConfig> expand() {
-        List<QueryConfig> dest;
+    public List<Query> expand() {
+        List<Query> dest;
         if (!expand) {
-            if (values != null && !values.isEmpty()) {
-                dest = new ArrayList<>(values.size());
-                for (String s : values) {
-                    dest.add(new QueryConfig(name, s, null, false));
+            if (values.isPresent()) {
+                dest = new ArrayList<>(values.get().size());
+                for (String s : values.get()) {
+                    dest.add(new Query(name, s));
                 }
-            } else if (value != null) {
-                dest = Lists.newArrayList(this);
+            } else if (value.isPresent()) {
+                dest = Lists.newArrayList(new Query(name, value.get()));
             } else {
                 throw new IllegalArgumentException("value or values must be specified to 'params'");
             }
         } else {
-            List<String> expanded = BraceExpansion.expand(value);
+            List<String> expanded = BraceExpansion.expand(value.get());
             dest = new ArrayList<>(expanded.size());
-            for(String s : expanded) {
-                dest.add(new QueryConfig(name, s, null, false));
+            for (String s : expanded) {
+                dest.add(new Query(name, s));
             }
         }
         return dest;
@@ -56,7 +57,7 @@ public class QueryConfig {
     }
 
     @JsonProperty("value")
-    public String getValue() {
+    public Optional<String> getValue() {
         return value;
     }
 
@@ -88,6 +89,24 @@ public class QueryConfig {
     public String toString() {
         return String.format("ParameterConfig[%s, %s, %s]",
                 getName(), getValue(), isExpand());
+    }
+
+    public class Query {
+        private final String name;
+        private final String value;
+
+        public Query(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
     private static class BraceExpansion {

@@ -93,8 +93,8 @@ public class HttpInputPlugin implements FileInputPlugin {
         @ConfigInject
         public BufferAllocator getBufferAllocator();
 
-        public List<ParamsConfig> getQueries();
-        public void setQueries(List<ParamsConfig> queries);
+        public List<List<QueryConfig.Query>> getQueries();
+        public void setQueries(List<List<QueryConfig.Query>> queries);
 
         public HttpMethod getHttpMethod();
         public void setHttpMethod(HttpMethod httpMethod);
@@ -111,11 +111,11 @@ public class HttpInputPlugin implements FileInputPlugin {
 
         int numOfThreads = 1;
         if (task.getParams().isPresent()) {
-            List<ParamsConfig> expandedQueries = task.getParams().get().expandQueries();
+            List<List<QueryConfig.Query>> expandedQueries = task.getParams().get().expandQueries();
             task.setQueries(expandedQueries);
             numOfThreads = expandedQueries.size();
         } else {
-            task.setQueries(new ArrayList<ParamsConfig>());
+            task.setQueries(new ArrayList<List<QueryConfig.Query>>());
         }
 
         if (numOfThreads == 1) {
@@ -214,24 +214,24 @@ public class HttpInputPlugin implements FileInputPlugin {
 
     private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
             throws URISyntaxException, UnsupportedEncodingException {
-        final ParamsConfig paramsConfig = (task.getQueries().isEmpty()) ?
+        final List<QueryConfig.Query> queries = (task.getQueries().isEmpty()) ?
                 null : task.getQueries().get(taskIndex);
         if (task.getHttpMethod() == HttpMethod.GET) {
             HttpGet request = new HttpGet(task.getUrl());
-            if (paramsConfig != null) {
+            if (queries != null) {
                 URIBuilder builder = new URIBuilder(request.getURI());
-                for (QueryConfig p : paramsConfig.getQueries()) {
-                    builder.addParameter(p.getName(), p.getValue());
+                for (QueryConfig.Query q : queries) {
+                    builder.addParameter(q.getName(), q.getValue());
                 }
                 request.setURI(builder.build());
             }
             return request;
         } else if (task.getHttpMethod() == HttpMethod.POST) {
             HttpPost request = new HttpPost(task.getUrl());
-            if (paramsConfig != null) {
+            if (queries != null) {
                 List<NameValuePair> pairs = new ArrayList<>();
-                for (QueryConfig p : paramsConfig.getQueries()) {
-                    pairs.add(new BasicNameValuePair(p.getName(), p.getValue()));
+                for (QueryConfig.Query q : queries) {
+                    pairs.add(new BasicNameValuePair(q.getName(), q.getValue()));
                 }
                 request.setEntity(new UrlEncodedFormEntity(pairs));
             }
