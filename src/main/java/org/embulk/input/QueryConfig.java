@@ -91,11 +91,13 @@ public class QueryConfig {
                 getName(), getValue(), isExpand());
     }
 
-    public class Query {
+    public static class Query {
         private final String name;
         private final String value;
 
-        public Query(String name, String value) {
+        public Query(
+                @JsonProperty("name") String name,
+                @JsonProperty("value") String value) {
             this.name = name;
             this.value = value;
         }
