@@ -2,6 +2,7 @@ package org.embulk.input;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
@@ -115,7 +116,7 @@ public class HttpInputPlugin implements FileInputPlugin {
             task.setQueries(expandedQueries);
             numOfThreads = expandedQueries.size();
         } else {
-            task.setQueries(new ArrayList<List<QueryConfig.Query>>());
+            task.setQueries(Lists.<List<QueryConfig.Query>>newArrayList());
         }
 
         if (numOfThreads == 1) {
