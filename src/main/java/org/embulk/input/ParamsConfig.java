@@ -29,13 +29,13 @@ public class ParamsConfig {
 
         int productSize = 1;
         int baseSize = base.size();
-        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++);
+        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) ;
 
         List<List<QueryConfig.Query>> expands = new ArrayList<>(productSize);
-        for(int i = 0; i < productSize; i++) {
+        for (int i = 0; i < productSize; i++) {
             int j = 1;
             List<QueryConfig.Query> query = new ArrayList<>();
-            for(List<QueryConfig.Query> list : base) {
+            for (List<QueryConfig.Query> list : base) {
                 QueryConfig.Query pc = list.get((i / j) % list.size());
                 query.add(pc);
                 j *= list.size();
