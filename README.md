@@ -48,8 +48,8 @@ The configuration using **values** is as below:
 
 ```yaml
 params:
-  - {name: id, values [5, 4, 3, 2, 1]}
-  - {name: name, values [John, Paul, George, Ringo]}
+  - {name: id, values: [5, 4, 3, 2, 1]}
+  - {name: name, values: ["John", "Paul", "George", "Ringo"]}
 ```
 
 Also You can rewrite this configuration by using **brace expansion style** like as follows:
