@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,23 +29,30 @@ public class QueryConfig {
 
     public List<Query> expand() {
         List<Query> dest;
-        if (!expand) {
-            if (values.isPresent()) {
+        if (value.isPresent()) {
+            if (expand) {
+                List<String> expanded = BraceExpansion.expand(value.get());
+                dest = new ArrayList<>(expanded.size());
+                for (String s : expanded) {
+                    dest.add(new Query(name, s));
+                }
+            } else {
+                dest = new ArrayList<>(1);
+                dest.add(new Query(name, value.get()));
+            }
+        } else if (values.isPresent()) {
+            if (expand) {
                 dest = new ArrayList<>(values.get().size());
                 for (String s : values.get()) {
                     dest.add(new Query(name, s));
                 }
-            } else if (value.isPresent()) {
-                dest = Lists.newArrayList(new Query(name, value.get()));
             } else {
-                throw new IllegalArgumentException("value or values must be specified to 'params'");
+                dest = new ArrayList<>(1);
+                final String[] valueArr = values.get().toArray(new String[values.get().size()]);
+                dest.add(new Query(name, valueArr));
             }
         } else {
-            List<String> expanded = BraceExpansion.expand(value.get());
-            dest = new ArrayList<>(expanded.size());
-            for (String s : expanded) {
-                dest.add(new Query(name, s));
-            }
+            throw new IllegalArgumentException("value or values must be specified to 'params'");
         }
         return dest;
     }
@@ -93,21 +99,21 @@ public class QueryConfig {
 
     public static class Query {
         private final String name;
-        private final String value;
+        private final String[] values;
 
         public Query(
                 @JsonProperty("name") String name,
-                @JsonProperty("value") String value) {
+                @JsonProperty("values") String... values) {
             this.name = name;
-            this.value = value;
+            this.values = values;
         }
 
         public String getName() {
             return name;
         }
 
-        public String getValue() {
-            return value;
+        public String[] getValues() {
+            return values;
         }
     }
 

@@ -6,14 +6,10 @@ import com.google.common.collect.Lists;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
@@ -22,6 +18,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -36,7 +33,6 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -81,6 +77,7 @@ public class HttpInputPlugin implements FileInputPlugin {
         @Config("sleep_before_request")
         @ConfigDefault("0")
         public int getSleepBeforeRequest();
+
         public void setSleepBeforeRequest(int sleepBeforeRequest);
 
         @Config("params")
@@ -95,9 +92,11 @@ public class HttpInputPlugin implements FileInputPlugin {
         public BufferAllocator getBufferAllocator();
 
         public List<List<QueryConfig.Query>> getQueries();
+
         public void setQueries(List<List<QueryConfig.Query>> queries);
 
         public HttpMethod getHttpMethod();
+
         public void setHttpMethod(HttpMethod httpMethod);
     }
 
@@ -222,7 +221,9 @@ public class HttpInputPlugin implements FileInputPlugin {
             if (queries != null) {
                 URIBuilder builder = new URIBuilder(request.getURI());
                 for (QueryConfig.Query q : queries) {
-                    builder.addParameter(q.getName(), q.getValue());
+                    for (String v : q.getValues()) {
+                        builder.addParameter(q.getName(), v);
+                    }
                 }
                 request.setURI(builder.build());
             }
@@ -232,7 +233,9 @@ public class HttpInputPlugin implements FileInputPlugin {
             if (queries != null) {
                 List<NameValuePair> pairs = new ArrayList<>();
                 for (QueryConfig.Query q : queries) {
-                    pairs.add(new BasicNameValuePair(q.getName(), q.getValue()));
+                    for (String v : q.getValues()) {
+                        pairs.add(new BasicNameValuePair(q.getName(), v));
+                    }
                 }
                 request.setEntity(new UrlEncodedFormEntity(pairs));
             }
