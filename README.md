@@ -42,14 +42,14 @@ in:
 
 ### Brace expansion style in params
 
-In *params* section, you can specify also multilple params by using **values** or **brace expansion style**.
+In *params* section, you can specify also multilple requests by using **values** or **brace expansion style** with set **expand** true.
 
 The configuration using **values** is as below:
 
 ```yaml
 params:
   - {name: id, values: [5, 4, 3, 2, 1]}
-  - {name: name, values: ["John", "Paul", "George", "Ringo"]}
+  - {name: name, values: ["John", "Paul", "George", "Ringo"], expand: true}
 ```
 
 Also You can rewrite this configuration by using **brace expansion style** like as follows:
@@ -61,7 +61,9 @@ params:
   - {name: name, value "{John,Paul,George,Ringo}", expand: true}
 ```
 
-To use this style, you need to set true to parameter *expand*, then all patterns of query will be called in a defferent request.
+Then all patterns of query will be called in a defferent request.
+
+By default, **expand** is false. In this case, all values will be multiple params in one request.
 
 
 ### Use basic authentication
