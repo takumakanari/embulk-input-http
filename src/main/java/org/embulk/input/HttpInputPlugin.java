@@ -4,14 +4,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -22,13 +19,13 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.embulk.config.*;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.Exec;
 import org.embulk.spi.FileInputPlugin;
 import org.embulk.spi.TransactionalFileInput;
 import org.embulk.spi.util.InputStreamFileInput;
+import org.embulk.spi.util.RetryExecutor;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -165,13 +162,6 @@ public class HttpInputPlugin implements FileInputPlugin {
                 .setDefaultRequestConfig(makeRequestConfig(task))
                 .setDefaultHeaders(makeHeaders(task));
 
-        if (task.getMaxRetries() > 0) {
-            final int retry = task.getMaxRetries();
-            final int interval = task.getRetryInterval();
-            HttpRequestRetryHandler retryHandler = new RetryHandler(retry, interval);
-            builder.setRetryHandler(retryHandler);
-        }
-
         if (task.getBasicAuth().isPresent()) {
             builder.setDefaultCredentialsProvider(makeCredentialsProvider(task.getBasicAuth().get(),
                     request));
@@ -179,28 +169,28 @@ public class HttpInputPlugin implements FileInputPlugin {
 
         HttpClient client = builder.build();
 
-        if (task.getSleepBeforeRequest() > 0) {
-            try {
-                logger.info(String.format("Waiting %d msec ...", task.getSleepBeforeRequest()));
-                Thread.sleep(task.getSleepBeforeRequest());
-            } catch (InterruptedException e) {
-            }
-        }
-
         logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
                 request.getURI().toString()));
+
+        RetryableHandler retryable = new RetryableHandler(client, request);
         try {
-            HttpResponse response = client.execute(request);
-            statusIsOkOrThrow(response);
-            //final String body = EntityUtils.toString(response.getEntity());
-            //InputStream stream = new ByteArrayInputStream(body.getBytes());
-            InputStream stream = response.getEntity().getContent();
+            if (task.getSleepBeforeRequest() > 0) {
+                logger.info(String.format("wait %d msec before request", task.getSleepBeforeRequest()));
+                Thread.sleep(task.getSleepBeforeRequest());
+            }
+            RetryExecutor.retryExecutor().
+                    withRetryLimit(task.getMaxRetries()).
+                    withInitialRetryWait(task.getRetryInterval()).
+                    withMaxRetryWait(30 * 60 * 1000).
+                    runInterruptible(retryable);
+            InputStream stream = retryable.getResponse().getEntity().getContent();
             PluginFileInput input = new PluginFileInput(task, stream);
             stream = null;
             return input;
-        } catch (IOException | HttpException e) {
+        } catch (Exception e) {
             throw Throwables.propagate(e);
         }
+
     }
 
     private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest) {
@@ -262,18 +252,6 @@ public class HttpInputPlugin implements FileInputPlugin {
                 .setConnectTimeout(task.getOpenTimeout())
                 .setSocketTimeout(task.getReadTimeout())
                 .build();
-    }
-
-    private void statusIsOkOrThrow(HttpResponse response)
-            throws HttpException, IOException {
-        int code = response.getStatusLine().getStatusCode();
-        switch (response.getStatusLine().getStatusCode()) {
-            case 200:
-                return;
-            default:
-                throw new HttpException(String.format("Request is not successful, code=%d, body=%s",
-                        code, EntityUtils.toString(response.getEntity())));
-        }
     }
 
     public static class PluginFileInput extends InputStreamFileInput
