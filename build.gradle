@@ -15,9 +15,9 @@ configurations {
 version = "0.0.6"
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.5.2"
+    compile  "org.embulk:embulk-core:0.6.8"
     compile  "org.apache.httpcomponents:httpclient:4.4"
-    provided "org.embulk:embulk-core:0.5.2"
+    provided "org.embulk:embulk-core:0.6.8"
     testCompile "junit:junit:4.+"
 }
 
