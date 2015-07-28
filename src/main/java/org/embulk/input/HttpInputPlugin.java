@@ -159,6 +159,7 @@ public class HttpInputPlugin implements FileInputPlugin {
         }
 
         HttpClientBuilder builder = HttpClientBuilder.create()
+                .disableAutomaticRetries()
                 .setDefaultRequestConfig(makeRequestConfig(task))
                 .setDefaultHeaders(makeHeaders(task));
 
