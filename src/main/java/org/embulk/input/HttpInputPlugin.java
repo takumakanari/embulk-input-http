@@ -144,7 +144,7 @@ public class HttpInputPlugin implements FileInputPlugin {
     @Override
     public void cleanup(TaskSource taskSource,
                         int taskCount,
-                        List<CommitReport> successCommitReports) {
+                        List<TaskReport> successTaskReports) {
     }
 
     @Override
@@ -292,8 +292,8 @@ public class HttpInputPlugin implements FileInputPlugin {
         public void abort() {
         }
 
-        public CommitReport commit() {
-            return Exec.newCommitReport();
+        public TaskReport commit() {
+            return Exec.newTaskReport();
         }
 
         @Override
