@@ -12,7 +12,7 @@ configurations {
     provided
 }
 
-version = "0.0.6"
+version = "0.0.7"
 
 dependencies {
     compile  "org.embulk:embulk-core:0.6.8"
