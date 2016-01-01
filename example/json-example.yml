@@ -11,18 +11,10 @@ in:
   method: get
   user_agent: example_json
   charset: utf8
+  interval_includes_response_time: yes
+  request_interval: 600
   parser:
-    type: json
-    root: $.response.station
-    schema:
-      - {name: name, type: string}
-      - {name: next, type: string}
-      - {name: prev, type: string}
-      - {name: distance, type: string}
-      - {name: lat, type: double, path: x}
-      - {name: lng, type: double, path: y}
-      - {name: line, type: string}
-      - {name: postal, type: string}
+    type: none
 
 out: {type: stdout}
 

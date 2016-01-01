@@ -71,11 +71,15 @@ public class HttpInputPlugin implements FileInputPlugin {
         @ConfigDefault("10000")
         public int getRetryInterval();
 
-        @Config("sleep_before_request")
+        @Config("request_interval")
         @ConfigDefault("0")
-        public int getSleepBeforeRequest();
+        public int getRequestInterval();
 
-        public void setSleepBeforeRequest(int sleepBeforeRequest);
+        public void setRequestInterval(int requestInterval);
+
+        @Config("interval_includes_response_time")
+        @ConfigDefault("null")
+        public boolean getIntervalIncludesResponseTime();
 
         @Config("params")
         @ConfigDefault("null")
@@ -106,31 +110,20 @@ public class HttpInputPlugin implements FileInputPlugin {
     public ConfigDiff transaction(ConfigSource config, FileInputPlugin.Control control) {
         PluginTask task = config.loadConfig(PluginTask.class);
 
-        int numOfThreads = 1;
+        final int tasks;
         if (task.getParams().isPresent()) {
             List<List<QueryConfig.Query>> expandedQueries = task.getParams().get().expandQueries();
             task.setQueries(expandedQueries);
-            numOfThreads = expandedQueries.size();
+            tasks = expandedQueries.size();
         } else {
             task.setQueries(Lists.<List<QueryConfig.Query>>newArrayList());
+            task.setRequestInterval(0);
+            tasks = 1;
         }
 
-        if (numOfThreads == 1) {
-            task.setSleepBeforeRequest(0);
-        }
+        task.setHttpMethod(HttpMethod.valueOf(task.getMethod().toUpperCase()));
 
-        switch (task.getMethod().toUpperCase()) {
-            case "GET":
-                task.setHttpMethod(HttpMethod.GET);
-                break;
-            case "POST":
-                task.setHttpMethod(HttpMethod.POST);
-                break;
-            default:
-                throw new ConfigException(String.format("Unsupported http method %s", task.getMethod()));
-        }
-
-        return resume(task.dump(), numOfThreads, control);
+        return resume(task.dump(), tasks, control);
     }
 
     @Override
@@ -142,9 +135,7 @@ public class HttpInputPlugin implements FileInputPlugin {
     }
 
     @Override
-    public void cleanup(TaskSource taskSource,
-                        int taskCount,
-                        List<TaskReport> successTaskReports) {
+    public void cleanup(TaskSource taskSource, int taskCount, List<TaskReport> successTaskReports) {
     }
 
     @Override
@@ -164,34 +155,28 @@ public class HttpInputPlugin implements FileInputPlugin {
                 .setDefaultHeaders(makeHeaders(task));
 
         if (task.getBasicAuth().isPresent()) {
-            builder.setDefaultCredentialsProvider(makeCredentialsProvider(task.getBasicAuth().get(),
-                    request));
+            builder.setDefaultCredentialsProvider(makeCredentialsProvider(task.getBasicAuth().get(), request));
         }
 
         HttpClient client = builder.build();
 
-        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
-                request.getURI().toString()));
+        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(), request.getURI().toString()));
 
         RetryableHandler retryable = new RetryableHandler(client, request);
+        long startTimeMills = System.currentTimeMillis();
         try {
-            if (task.getSleepBeforeRequest() > 0) {
-                logger.info(String.format("wait %d msec before request", task.getSleepBeforeRequest()));
-                Thread.sleep(task.getSleepBeforeRequest());
-            }
             RetryExecutor.retryExecutor().
                     withRetryLimit(task.getMaxRetries()).
                     withInitialRetryWait(task.getRetryInterval()).
                     withMaxRetryWait(30 * 60 * 1000).
                     runInterruptible(retryable);
             InputStream stream = retryable.getResponse().getEntity().getContent();
-            PluginFileInput input = new PluginFileInput(task, stream);
+            PluginFileInput input = new PluginFileInput(task, stream, startTimeMills);
             stream = null;
             return input;
         } catch (Exception e) {
             throw Throwables.propagate(e);
         }
-
     }
 
     private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest) {
@@ -258,10 +243,53 @@ public class HttpInputPlugin implements FileInputPlugin {
     public static class PluginFileInput extends InputStreamFileInput
             implements TransactionalFileInput {
 
+        private final Logger logger = Exec.getLogger(getClass());
+
+        private final long startTimeMills;
+        private final PluginTask task;
+
+        public PluginFileInput(PluginTask task, InputStream stream, long startTimeMills) {
+            super(task.getBufferAllocator(), new SingleFileProvider(stream));
+            this.startTimeMills = startTimeMills;
+            this.task = task;
+        }
+
+        public TaskReport commit() {
+            return Exec.newTaskReport();
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            handleInterval();
+        }
+
+        @Override
+        public void abort() {
+        }
+
+        protected void handleInterval() {
+            if (task.getRequestInterval() <= 0) {
+                return;
+            }
+            long interval = task.getRequestInterval();
+            if (task.getIntervalIncludesResponseTime()) {
+                interval = interval - (System.currentTimeMillis() - startTimeMills);
+            }
+            if (interval > 0) {
+                logger.info(String.format("waiting %d msec ...", interval));
+                try {
+                    Thread.sleep(interval);
+                } catch (InterruptedException e) {
+                    Throwables.propagate(e);
+                }
+            }
+        }
+
         private static class SingleFileProvider
                 implements InputStreamFileInput.Provider {
 
-            private InputStream stream;
+            private final InputStream stream;
             private boolean opened = false;
 
             public SingleFileProvider(InputStream stream) {
@@ -284,21 +312,5 @@ public class HttpInputPlugin implements FileInputPlugin {
                 }
             }
         }
-
-        public PluginFileInput(PluginTask task, InputStream stream) {
-            super(task.getBufferAllocator(), new SingleFileProvider(stream));
-        }
-
-        public void abort() {
-        }
-
-        public TaskReport commit() {
-            return Exec.newTaskReport();
-        }
-
-        @Override
-        public void close() {
-        }
     }
-
 }

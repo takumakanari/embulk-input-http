@@ -27,7 +27,7 @@ in:
   method: get
 ```
 
-- **type**: specify this plugin as `http`
+- **type**: specify this plugin as *http*
 - **url**: base url something like api (required)
 - **params**: pair of name/value to specify query parameter (optional)
 - **method**: http method, get is used by default (optional)
@@ -38,7 +38,8 @@ in:
 - **read_timeout**: timeout msec to read content via http (optional, 10000 is used by default)
 - **max_retries**: max number of retry request if failed (optional, 5 is used by default)
 - **retry_interval**: interval msec to retry max (optional, 10000 is used by default)
-- **sleep\_before\_request**: wait msec before each requests (optional, 0 is used by default)
+- **request_interval**: wait msec before each requests (optional, 0 is used by default)
+- **interval\_includes\_response\_time**: yes/no, if yes and you set *request_interval*, response time will be included in interval for next request (optional, no is used by default)
 
 ### Brace expansion style in params
 
