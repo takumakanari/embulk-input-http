@@ -6,13 +6,14 @@ in:
   params:
     - {name: method, value: getStations}
     - {name: x, value: 135.0}
-    - {name: y, value: "{35,34,33,32,31}.0", expand: true}
-    - {name: z, values: ["a", "b", "c"], expand: true}
+    - {name: y, value: "{35,34,33,32,31}.0", expand: 1}
+    - {name: z, values: ["a", "b", "c"], expand: 1}
   method: get
   user_agent: example_json
   charset: utf8
-  interval_includes_response_time: yes
   request_interval: 600
+  interval_includes_response_time: 1
+  request_headers: {X-Some-Key1: some-value1, X-Some-key2: some-value2}
   parser:
     type: none
 
