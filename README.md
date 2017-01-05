@@ -32,6 +32,7 @@ in:
 - **params**: pair of name/value to specify query parameter (optional)
 - **method**: http method, get is used by default (optional)
 - **user_agent**: the usrr agent to specify request header (optional)
+- **request_headers**: the extra request headers as key-value (optional)
 - **charset**: charset to specify request header (optional, utf-8 is used by default)
 - **basic_auth**: username/password for basic authentication (optional)
 - **open_timeout**: timeout msec to open connection (optional, 2000 is used by default)
@@ -90,6 +91,7 @@ in:
     - {name: method, value: getStations}
     - {name: x, value: 135.0}
     - {name: y, value: "{35,34,33,32,31}.0", expand: true}
+　request_headers: {X-Some-Key1: some-value1, X-Some-key2: some-value2}
   parser:
     type: json
     root: $.response.station
@@ -129,7 +131,6 @@ in:
 
 ## TODO
 - HTTP-proxy
-- Custom hedaers
 - Guess
 
 ## Patch

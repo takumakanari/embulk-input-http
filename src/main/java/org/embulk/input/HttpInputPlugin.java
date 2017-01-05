@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class HttpInputPlugin implements FileInputPlugin {
 
@@ -88,6 +89,11 @@ public class HttpInputPlugin implements FileInputPlugin {
         @Config("basic_auth")
         @ConfigDefault("null")
         public Optional<BasicAuthConfig> getBasicAuth();
+
+        @Config("request_headers")
+        @ConfigDefault("{}")
+        public Map<String, String> getRequestHeaders();
+
 
         @ConfigInject
         public BufferAllocator getBufferAllocator();
@@ -227,6 +233,9 @@ public class HttpInputPlugin implements FileInputPlugin {
         headers.add(new BasicHeader("Accept-Encoding", "gzip, deflate"));
         headers.add(new BasicHeader("Accept-Language", "en-us,en;q=0.5"));
         headers.add(new BasicHeader("User-Agent", task.getUserAgent()));
+        for (Map.Entry<String,String> entry : task.getRequestHeaders().entrySet()) {
+            headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
+        }
         return headers;
     }
 
