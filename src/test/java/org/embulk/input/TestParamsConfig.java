@@ -16,7 +16,8 @@ public class TestParamsConfig {
         QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, false);
         QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, false);
         ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        List<List<QueryConfig.Query>> dest = paramsConfig.expandQueries();
+        Optional<PagerConfig> pagerConfig = Optional.absent();
+        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -35,7 +36,8 @@ public class TestParamsConfig {
         QueryConfig q2 = new QueryConfig("test2", nullValue, Optional.of(values2), false);
 
         ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        List<List<QueryConfig.Query>> dest = paramsConfig.expandQueries();
+        Optional<PagerConfig> pagerConfig = Optional.absent();
+        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -52,7 +54,8 @@ public class TestParamsConfig {
         QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, true);
         QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, true);
         ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        List<List<QueryConfig.Query>> dest = paramsConfig.expandQueries();
+        Optional<PagerConfig> pagerConfig = Optional.absent();
+        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -71,7 +74,8 @@ public class TestParamsConfig {
         QueryConfig q2 = new QueryConfig("test2", nullValue, Optional.of(values2), true);
 
         ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        List<List<QueryConfig.Query>> dest = paramsConfig.expandQueries();
+        Optional<PagerConfig> pagerConfig = Optional.absent();
+        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
         assertEquals(dest.size(), 4);
 
         assertEquals(dest.get(0).size(), 2);
