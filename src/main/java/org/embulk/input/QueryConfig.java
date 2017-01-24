@@ -6,6 +6,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class QueryConfig {
@@ -114,6 +115,10 @@ public class QueryConfig {
 
         public String[] getValues() {
             return values;
+        }
+
+        public Query copy() {
+            return new Query(this.name, Arrays.copyOf(this.values, this.values.length));
         }
     }
 

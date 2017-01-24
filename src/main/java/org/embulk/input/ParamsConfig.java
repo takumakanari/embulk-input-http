@@ -3,6 +3,7 @@ package org.embulk.input;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class ParamsConfig {
         return queries;
     }
 
-    public List<List<QueryConfig.Query>> expandQueries() {
+    public List<List<QueryConfig.Query>> generateQueries(Optional<PagerConfig> pagerConfig) {
         List<List<QueryConfig.Query>> base = new ArrayList<>(queries.size());
         for (QueryConfig p : queries) {
             base.add(p.expand());
@@ -29,18 +30,24 @@ public class ParamsConfig {
 
         int productSize = 1;
         int baseSize = base.size();
-        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) ;
+        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++);
 
         List<List<QueryConfig.Query>> expands = new ArrayList<>(productSize);
         for (int i = 0; i < productSize; i++) {
             int j = 1;
-            List<QueryConfig.Query> query = new ArrayList<>();
+            List<QueryConfig.Query> one = new ArrayList<>();
             for (List<QueryConfig.Query> list : base) {
                 QueryConfig.Query pc = list.get((i / j) % list.size());
-                query.add(pc);
+                one.add(pc);
                 j *= list.size();
             }
-            expands.add(query);
+            if (pagerConfig.isPresent()) {
+                for (List<QueryConfig.Query> q : pagerConfig.get().expand()) {
+                    expands.add(copyAndConcat(one, q));
+                }
+            } else {
+                expands.add(one);
+            }
         }
 
         return expands;
@@ -63,4 +70,13 @@ public class ParamsConfig {
         return Objects.hashCode(queries);
     }
 
+    private List<QueryConfig.Query> copyAndConcat(List<QueryConfig.Query>... srcs) {
+        List<QueryConfig.Query> dest = new ArrayList<>();
+        for (List<QueryConfig.Query> src : srcs) {
+            for (QueryConfig.Query q : src) {
+                dest.add(q.copy());
+            }
+        }
+        return dest;
+    }
 }

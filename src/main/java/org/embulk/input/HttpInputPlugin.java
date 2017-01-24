@@ -90,10 +90,13 @@ public class HttpInputPlugin implements FileInputPlugin {
         @ConfigDefault("null")
         public Optional<BasicAuthConfig> getBasicAuth();
 
+        @Config("pager")
+        @ConfigDefault("null")
+        public Optional<PagerConfig> getPager();
+
         @Config("request_headers")
         @ConfigDefault("{}")
         public Map<String, String> getRequestHeaders();
-
 
         @ConfigInject
         public BufferAllocator getBufferAllocator();
@@ -118,9 +121,13 @@ public class HttpInputPlugin implements FileInputPlugin {
 
         final int tasks;
         if (task.getParams().isPresent()) {
-            List<List<QueryConfig.Query>> expandedQueries = task.getParams().get().expandQueries();
-            task.setQueries(expandedQueries);
-            tasks = expandedQueries.size();
+            List<List<QueryConfig.Query>> queries = task.getParams().get().generateQueries(task.getPager());
+            task.setQueries(queries);
+            tasks = queries.size();
+        } else if (task.getPager().isPresent()) {
+            List<List<QueryConfig.Query>> queries = task.getPager().get().expand();
+            task.setQueries(queries);
+            tasks = queries.size();
         } else {
             task.setQueries(Lists.<List<QueryConfig.Query>>newArrayList());
             task.setRequestInterval(0);
@@ -134,8 +141,8 @@ public class HttpInputPlugin implements FileInputPlugin {
 
     @Override
     public ConfigDiff resume(TaskSource taskSource,
-                             int taskCount,
-                             FileInputPlugin.Control control) {
+            int taskCount,
+            FileInputPlugin.Control control) {
         control.run(taskSource, taskCount);
         return Exec.newConfigDiff();
     }
@@ -233,7 +240,7 @@ public class HttpInputPlugin implements FileInputPlugin {
         headers.add(new BasicHeader("Accept-Encoding", "gzip, deflate"));
         headers.add(new BasicHeader("Accept-Language", "en-us,en;q=0.5"));
         headers.add(new BasicHeader("User-Agent", task.getUserAgent()));
-        for (Map.Entry<String,String> entry : task.getRequestHeaders().entrySet()) {
+        for (Map.Entry<String, String> entry : task.getRequestHeaders().entrySet()) {
             headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
         }
         return headers;
