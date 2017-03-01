@@ -20,7 +20,7 @@ targetCompatibility = 1.7
 
 dependencies {
     compile  "org.embulk:embulk-core:0.8.8"
-    compile  "org.apache.httpcomponents:httpclient:4.4"
+    compile  "org.apache.httpcomponents:httpclient:4.5"
     provided "org.embulk:embulk-core:0.8.8"
     testCompile "junit:junit:4.+"
 }
