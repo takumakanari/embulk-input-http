@@ -1,4 +1,4 @@
-package org.embulk.input;
+package org.embulk.input.http;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpException;

@@ -1,4 +1,4 @@
-package org.embulk.input;
+package org.embulk.input.http;
 
 import com.google.common.base.Optional;
 import org.junit.Test;

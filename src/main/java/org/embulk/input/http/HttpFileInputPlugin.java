@@ -1,4 +1,4 @@
-package org.embulk.input;
+package org.embulk.input.http;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HttpInputPlugin implements FileInputPlugin {
+public class HttpFileInputPlugin implements FileInputPlugin {
 
     private final Logger logger = Exec.getLogger(getClass());
 
@@ -53,7 +53,7 @@ public class HttpInputPlugin implements FileInputPlugin {
         public String getMethod();
 
         @Config("user_agent")
-        @ConfigDefault("\"Embulk::Input::HttpInputPlugin\"")
+        @ConfigDefault("\"Embulk::Input::HttpFileInputPlugin\"")
         public String getUserAgent();
 
         @Config("open_timeout")
@@ -173,7 +173,8 @@ public class HttpInputPlugin implements FileInputPlugin {
 
         HttpClient client = builder.build();
 
-        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(), request.getURI().toString()));
+        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
+                request.getURI().toString()));
 
         RetryableHandler retryable = new RetryableHandler(client, request);
         long startTimeMills = System.currentTimeMillis();

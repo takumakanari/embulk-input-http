@@ -1,4 +1,4 @@
-package org.embulk.input;
+package org.embulk.input.http;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
