@@ -74,8 +74,8 @@ You can specify username/password for basic authentication.
 
 ```yaml
 basic_auth:
- - user: MyUser
- - password: MyPassword
+ user: MyUser
+ password: MyPassword
 ```
 
 ### Paging by 'pager'
