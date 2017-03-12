@@ -92,15 +92,15 @@ public class HttpFileInputPlugin implements FileInputPlugin
 
         @Config("params")
         @ConfigDefault("null")
-        Optional<ParamsConfig> getParams();
+        Optional<ParamsOption> getParams();
 
         @Config("basic_auth")
         @ConfigDefault("null")
-        Optional<BasicAuthConfig> getBasicAuth();
+        Optional<BasicAuthOption> getBasicAuth();
 
         @Config("pager")
         @ConfigDefault("null")
-        Optional<PagerConfig> getPager();
+        Optional<PagerOption> getPager();
 
         @Config("request_headers")
         @ConfigDefault("{}")
@@ -109,9 +109,9 @@ public class HttpFileInputPlugin implements FileInputPlugin
         @ConfigInject
         BufferAllocator getBufferAllocator();
 
-        List<List<QueryConfig.Query>> getQueries();
+        List<List<QueryOption.Query>> getQueries();
 
-        void setQueries(List<List<QueryConfig.Query>> queries);
+        void setQueries(List<List<QueryOption.Query>> queries);
 
         HttpMethod getHttpMethod();
 
@@ -131,17 +131,17 @@ public class HttpFileInputPlugin implements FileInputPlugin
 
         final int tasks;
         if (task.getParams().isPresent()) {
-            List<List<QueryConfig.Query>> queries = task.getParams().get().generateQueries(task.getPager());
+            List<List<QueryOption.Query>> queries = task.getParams().get().generateQueries(task.getPager());
             task.setQueries(queries);
             tasks = queries.size();
         }
         else if (task.getPager().isPresent()) {
-            List<List<QueryConfig.Query>> queries = task.getPager().get().expand();
+            List<List<QueryOption.Query>> queries = task.getPager().get().expand();
             task.setQueries(queries);
             tasks = queries.size();
         }
         else {
-            task.setQueries(Lists.<List<QueryConfig.Query>>newArrayList());
+            task.setQueries(Lists.<List<QueryOption.Query>>newArrayList());
             task.setRequestInterval(0);
             tasks = 1;
         }
@@ -208,26 +208,26 @@ public class HttpFileInputPlugin implements FileInputPlugin
         }
     }
 
-    private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest)
+    private CredentialsProvider makeCredentialsProvider(BasicAuthOption basicAuth, HttpRequestBase request)
     {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final AuthScope authScope = new AuthScope(scopeRequest.getURI().getHost(),
-                scopeRequest.getURI().getPort());
+        final AuthScope authScope = new AuthScope(request.getURI().getHost(),
+                request.getURI().getPort());
         credentialsProvider.setCredentials(authScope,
-                new UsernamePasswordCredentials(config.getUser(), config.getPassword()));
+                new UsernamePasswordCredentials(basicAuth.getUser(), basicAuth.getPassword()));
         return credentialsProvider;
     }
 
     private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
             throws URISyntaxException, UnsupportedEncodingException
     {
-        final List<QueryConfig.Query> queries = (task.getQueries().isEmpty()) ?
+        final List<QueryOption.Query> queries = (task.getQueries().isEmpty()) ?
                 null : task.getQueries().get(taskIndex);
         if (task.getHttpMethod() == HttpMethod.GET) {
             HttpGet request = new HttpGet(task.getUrl());
             if (queries != null) {
                 URIBuilder builder = new URIBuilder(request.getURI());
-                for (QueryConfig.Query q : queries) {
+                for (QueryOption.Query q : queries) {
                     for (String v : q.getValues()) {
                         builder.addParameter(q.getName(), v);
                     }
@@ -240,7 +240,7 @@ public class HttpFileInputPlugin implements FileInputPlugin
             HttpPost request = new HttpPost(task.getUrl());
             if (queries != null) {
                 List<NameValuePair> pairs = new ArrayList<>();
-                for (QueryConfig.Query q : queries) {
+                for (QueryOption.Query q : queries) {
                     for (String v : q.getValues()) {
                         pairs.add(new BasicNameValuePair(q.getName(), v));
                     }

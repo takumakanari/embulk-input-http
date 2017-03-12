@@ -8,17 +8,17 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class TestParamsConfig
+public class TestParamsOption
 {
     @Test
     public void testUnexpandQueriesSinglePair() throws Exception
     {
         Optional<List<String>> nullValues = Optional.absent();
-        QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, false);
-        QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, false);
-        ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        Optional<PagerConfig> pagerConfig = Optional.absent();
-        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
+        QueryOption q1 = new QueryOption("test1", Optional.of("awasome1"), nullValues, false);
+        QueryOption q2 = new QueryOption("test2", Optional.of("awasome2"), nullValues, false);
+        ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
+        Optional<PagerOption> pagerOption = Optional.absent();
+        List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -34,12 +34,12 @@ public class TestParamsConfig
         List<String> values1 = Lists.newArrayList("a", "b");
         List<String> values2 = Lists.newArrayList("c", "d");
 
-        QueryConfig q1 = new QueryConfig("test1", nullValue, Optional.of(values1), false);
-        QueryConfig q2 = new QueryConfig("test2", nullValue, Optional.of(values2), false);
+        QueryOption q1 = new QueryOption("test1", nullValue, Optional.of(values1), false);
+        QueryOption q2 = new QueryOption("test2", nullValue, Optional.of(values2), false);
 
-        ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        Optional<PagerConfig> pagerConfig = Optional.absent();
-        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
+        ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
+        Optional<PagerOption> pagerOption = Optional.absent();
+        List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -54,11 +54,11 @@ public class TestParamsConfig
     public void testExpandQueriesSinglePair() throws Exception
     {
         Optional<List<String>> nullValues = Optional.absent();
-        QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, true);
-        QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, true);
-        ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        Optional<PagerConfig> pagerConfig = Optional.absent();
-        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
+        QueryOption q1 = new QueryOption("test1", Optional.of("awasome1"), nullValues, true);
+        QueryOption q2 = new QueryOption("test2", Optional.of("awasome2"), nullValues, true);
+        ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
+        Optional<PagerOption> pagerOption = Optional.absent();
+        List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
         assertEquals(dest.size(), 1);
         assertEquals(dest.get(0).size(), 2);
         assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -74,12 +74,12 @@ public class TestParamsConfig
         List<String> values1 = Lists.newArrayList("a", "b");
         List<String> values2 = Lists.newArrayList("c", "d");
 
-        QueryConfig q1 = new QueryConfig("test1", nullValue, Optional.of(values1), true);
-        QueryConfig q2 = new QueryConfig("test2", nullValue, Optional.of(values2), true);
+        QueryOption q1 = new QueryOption("test1", nullValue, Optional.of(values1), true);
+        QueryOption q2 = new QueryOption("test2", nullValue, Optional.of(values2), true);
 
-        ParamsConfig paramsConfig = new ParamsConfig(Lists.newArrayList(q1, q2));
-        Optional<PagerConfig> pagerConfig = Optional.absent();
-        List<List<QueryConfig.Query>> dest = paramsConfig.generateQueries(pagerConfig);
+        ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
+        Optional<PagerOption> pagerOption = Optional.absent();
+        List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
         assertEquals(dest.size(), 4);
 
         assertEquals(dest.get(0).size(), 2);

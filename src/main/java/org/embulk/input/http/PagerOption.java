@@ -7,7 +7,7 @@ import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PagerConfig
+public class PagerOption
 {
     private final String fromParam;
     private final Optional<String> toParam;
@@ -16,7 +16,7 @@ public class PagerConfig
     private final int step;
 
     @JsonCreator
-    public PagerConfig(@JsonProperty("from_param") String fromParam,
+    public PagerOption(@JsonProperty("from_param") String fromParam,
             @JsonProperty("to_param") Optional<String> toParam,
             @JsonProperty("start") Optional<Integer> start,
             @JsonProperty("pages") int pages,
@@ -29,17 +29,17 @@ public class PagerConfig
         this.step = step.or(1);
     }
 
-    public List<List<QueryConfig.Query>> expand()
+    public List<List<QueryOption.Query>> expand()
     {
-        List<List<QueryConfig.Query>> queries = new ArrayList<>();
+        List<List<QueryOption.Query>> queries = new ArrayList<>();
         int p = 1;
         int index = start;
         while (p <= pages) {
-            List<QueryConfig.Query> one = new ArrayList<>();
-            one.add(new QueryConfig.Query(fromParam, Integer.toString(index)));
+            List<QueryOption.Query> one = new ArrayList<>();
+            one.add(new QueryOption.Query(fromParam, Integer.toString(index)));
             if (toParam.isPresent()) {
                 int t = index + step - 1;
-                one.add(new QueryConfig.Query(toParam.get(), Integer.toString(t)));
+                one.add(new QueryOption.Query(toParam.get(), Integer.toString(t)));
                 index = t + 1;
             }
             else {
@@ -84,7 +84,7 @@ public class PagerConfig
     @Override
     public String toString()
     {
-        return "PagerConfig{" +
+        return "PagerOption{" +
                 "fromParam='" + fromParam + '\'' +
                 ", toParam=" + toParam +
                 ", start=" + start +

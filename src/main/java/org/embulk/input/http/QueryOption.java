@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class QueryConfig
+public class QueryOption
 {
     private final String name;
     private final Optional<String> value;
@@ -17,7 +17,7 @@ public class QueryConfig
     private final boolean expand;
 
     @JsonCreator
-    public QueryConfig(@JsonProperty("name") String name,
+    public QueryOption(@JsonProperty("name") String name,
             @JsonProperty("value") Optional<String> value,
             @JsonProperty("values") Optional<List<String>> values,
             @JsonProperty("expand") boolean expand)
@@ -87,10 +87,10 @@ public class QueryConfig
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof QueryConfig)) {
+        if (!(obj instanceof QueryOption)) {
             return false;
         }
-        QueryConfig other = (QueryConfig) obj;
+        QueryOption other = (QueryOption) obj;
         return Objects.equal(this.name, other.name) &&
                 Objects.equal(value, other.value) &&
                 Objects.equal(expand, other.expand);

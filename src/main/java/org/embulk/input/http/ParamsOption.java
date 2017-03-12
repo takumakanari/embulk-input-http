@@ -8,26 +8,26 @@ import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParamsConfig
+public class ParamsOption
 {
-    private final List<QueryConfig> queries;
+    private final List<QueryOption> queries;
 
     @JsonCreator
-    public ParamsConfig(List<QueryConfig> queries)
+    public ParamsOption(List<QueryOption> queries)
     {
         this.queries = queries;
     }
 
     @JsonValue
-    public List<QueryConfig> getQueries()
+    public List<QueryOption> getQueries()
     {
         return queries;
     }
 
-    public List<List<QueryConfig.Query>> generateQueries(Optional<PagerConfig> pagerConfig)
+    public List<List<QueryOption.Query>> generateQueries(Optional<PagerOption> pagerOption)
     {
-        List<List<QueryConfig.Query>> base = new ArrayList<>(queries.size());
-        for (QueryConfig p : queries) {
+        List<List<QueryOption.Query>> base = new ArrayList<>(queries.size());
+        for (QueryOption p : queries) {
             base.add(p.expand());
         }
 
@@ -36,17 +36,17 @@ public class ParamsConfig
         for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) {
         }
 
-        List<List<QueryConfig.Query>> expands = new ArrayList<>(productSize);
+        List<List<QueryOption.Query>> expands = new ArrayList<>(productSize);
         for (int i = 0; i < productSize; i++) {
             int j = 1;
-            List<QueryConfig.Query> one = new ArrayList<>();
-            for (List<QueryConfig.Query> list : base) {
-                QueryConfig.Query pc = list.get((i / j) % list.size());
+            List<QueryOption.Query> one = new ArrayList<>();
+            for (List<QueryOption.Query> list : base) {
+                QueryOption.Query pc = list.get((i / j) % list.size());
                 one.add(pc);
                 j *= list.size();
             }
-            if (pagerConfig.isPresent()) {
-                for (List<QueryConfig.Query> q : pagerConfig.get().expand()) {
+            if (pagerOption.isPresent()) {
+                for (List<QueryOption.Query> q : pagerOption.get().expand()) {
                     expands.add(copyAndConcat(one, q));
                 }
             }
@@ -64,10 +64,10 @@ public class ParamsConfig
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ParamsConfig)) {
+        if (!(obj instanceof ParamsOption)) {
             return false;
         }
-        ParamsConfig other = (ParamsConfig) obj;
+        ParamsOption other = (ParamsOption) obj;
         return Objects.equal(queries, other.queries);
     }
 
@@ -77,11 +77,11 @@ public class ParamsConfig
         return Objects.hashCode(queries);
     }
 
-    private List<QueryConfig.Query> copyAndConcat(List<QueryConfig.Query>... srcs)
+    private List<QueryOption.Query> copyAndConcat(List<QueryOption.Query>... srcs)
     {
-        List<QueryConfig.Query> dest = new ArrayList<>();
-        for (List<QueryConfig.Query> src : srcs) {
-            for (QueryConfig.Query q : src) {
+        List<QueryOption.Query> dest = new ArrayList<>();
+        for (List<QueryOption.Query> src : srcs) {
+            for (QueryOption.Query q : src) {
                 dest.add(q.copy());
             }
         }

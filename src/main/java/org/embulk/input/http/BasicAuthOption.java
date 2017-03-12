@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
-public class BasicAuthConfig
+public class BasicAuthOption
 {
     private final String user;
     private final String password;
 
     @JsonCreator
-    public BasicAuthConfig(@JsonProperty("user") String user,
+    public BasicAuthOption(@JsonProperty("user") String user,
             @JsonProperty("password") String password)
     {
         this.user = user;
@@ -38,6 +38,6 @@ public class BasicAuthConfig
     @Override
     public String toString()
     {
-        return String.format("BasicAuthConfig[%s, %s]", getUser(), getPassword());
+        return String.format("BasicAuthOption[%s, %s]", getUser(), getPassword());
     }
 }
