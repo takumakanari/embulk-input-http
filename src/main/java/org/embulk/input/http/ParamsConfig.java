@@ -8,21 +8,24 @@ import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParamsConfig {
-
+public class ParamsConfig
+{
     private final List<QueryConfig> queries;
 
     @JsonCreator
-    public ParamsConfig(List<QueryConfig> queries) {
+    public ParamsConfig(List<QueryConfig> queries)
+    {
         this.queries = queries;
     }
 
     @JsonValue
-    public List<QueryConfig> getQueries() {
+    public List<QueryConfig> getQueries()
+    {
         return queries;
     }
 
-    public List<List<QueryConfig.Query>> generateQueries(Optional<PagerConfig> pagerConfig) {
+    public List<List<QueryConfig.Query>> generateQueries(Optional<PagerConfig> pagerConfig)
+    {
         List<List<QueryConfig.Query>> base = new ArrayList<>(queries.size());
         for (QueryConfig p : queries) {
             base.add(p.expand());
@@ -30,7 +33,8 @@ public class ParamsConfig {
 
         int productSize = 1;
         int baseSize = base.size();
-        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++);
+        for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) {
+        }
 
         List<List<QueryConfig.Query>> expands = new ArrayList<>(productSize);
         for (int i = 0; i < productSize; i++) {
@@ -45,7 +49,8 @@ public class ParamsConfig {
                 for (List<QueryConfig.Query> q : pagerConfig.get().expand()) {
                     expands.add(copyAndConcat(one, q));
                 }
-            } else {
+            }
+            else {
                 expands.add(one);
             }
         }
@@ -54,7 +59,8 @@ public class ParamsConfig {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }
@@ -66,11 +72,13 @@ public class ParamsConfig {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hashCode(queries);
     }
 
-    private List<QueryConfig.Query> copyAndConcat(List<QueryConfig.Query>... srcs) {
+    private List<QueryConfig.Query> copyAndConcat(List<QueryConfig.Query>... srcs)
+    {
         List<QueryConfig.Query> dest = new ArrayList<>();
         for (List<QueryConfig.Query> src : srcs) {
             for (QueryConfig.Query q : src) {

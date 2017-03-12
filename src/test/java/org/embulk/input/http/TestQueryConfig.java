@@ -8,10 +8,11 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class TestQueryConfig {
-
+public class TestQueryConfig
+{
     @Test
-    public void testUnexpandSingleValue() throws Exception {
+    public void testUnexpandSingleValue() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig config = new QueryConfig("test", Optional.of("awesome"), nullValues, false);
         List<QueryConfig.Query> dest = config.expand();
@@ -22,7 +23,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testUnexpandMultiValue() throws Exception {
+    public void testUnexpandMultiValue() throws Exception
+    {
         Optional<String> nullValue = Optional.absent();
         List<String> values = Lists.newArrayList("a", "b", "c");
         QueryConfig config = new QueryConfig("test", nullValue, Optional.of(values), false);
@@ -37,7 +39,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testExpandSingleValue() throws Exception {
+    public void testExpandSingleValue() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig config = new QueryConfig("test", Optional.of("awesome"), nullValues, true);
         List<QueryConfig.Query> dest = config.expand();
@@ -47,7 +50,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testExpandMultiValue() throws Exception {
+    public void testExpandMultiValue() throws Exception
+    {
         Optional<String> nullValue = Optional.absent();
         List<String> values = Lists.newArrayList("a", "b", "c");
         QueryConfig config = new QueryConfig("test", nullValue, Optional.of(values), true);
@@ -67,7 +71,8 @@ public class TestQueryConfig {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExpandRaisesExceptionWhenBothValuesAreNull() throws Exception {
+    public void testExpandRaisesExceptionWhenBothValuesAreNull() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         Optional<String> nullValue = Optional.absent();
         QueryConfig config = new QueryConfig("test", nullValue, nullValues, false);
@@ -75,7 +80,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testUnExpandBrace() throws Exception {
+    public void testUnExpandBrace() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig config = new QueryConfig("test", Optional.of("{awesome1,awesome2,awesome3}"), nullValues, false);
         List<QueryConfig.Query> dest = config.expand();
@@ -86,7 +92,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testExpandBrace() throws Exception {
+    public void testExpandBrace() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig config = new QueryConfig("test", Optional.of("{awesome1,awesome2,awesome3}"), nullValues, true);
         List<QueryConfig.Query> dest = config.expand();
@@ -105,7 +112,8 @@ public class TestQueryConfig {
     }
 
     @Test
-    public void testExpandEscapedBrace() throws Exception {
+    public void testExpandEscapedBrace() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig config = new QueryConfig("test", Optional.of("{awe\\,some1,awes\\{ome2,awes\\}ome3}"), nullValues, true);
         List<QueryConfig.Query> dest = config.expand();
@@ -121,5 +129,4 @@ public class TestQueryConfig {
         assertEquals(dest.get(2).getValues().length, 1);
         assertEquals(dest.get(2).getValues()[0], "awes}ome3");
     }
-
 }

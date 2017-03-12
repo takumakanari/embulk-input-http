@@ -7,8 +7,8 @@ import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PagerConfig {
-
+public class PagerConfig
+{
     private final String fromParam;
     private final Optional<String> toParam;
     private final int start;
@@ -20,7 +20,8 @@ public class PagerConfig {
             @JsonProperty("to_param") Optional<String> toParam,
             @JsonProperty("start") Optional<Integer> start,
             @JsonProperty("pages") int pages,
-            @JsonProperty("step") Optional<Integer> step) {
+            @JsonProperty("step") Optional<Integer> step)
+    {
         this.fromParam = fromParam;
         this.toParam = toParam;
         this.start = start.or(0);
@@ -28,7 +29,8 @@ public class PagerConfig {
         this.step = step.or(1);
     }
 
-    public List<List<QueryConfig.Query>> expand() {
+    public List<List<QueryConfig.Query>> expand()
+    {
         List<List<QueryConfig.Query>> queries = new ArrayList<>();
         int p = 1;
         int index = start;
@@ -39,7 +41,8 @@ public class PagerConfig {
                 int t = index + step - 1;
                 one.add(new QueryConfig.Query(toParam.get(), Integer.toString(t)));
                 index = t + 1;
-            } else {
+            }
+            else {
                 index += step;
             }
             queries.add(one);
@@ -49,32 +52,38 @@ public class PagerConfig {
     }
 
     @JsonProperty("from_param")
-    public String getFromParam() {
+    public String getFromParam()
+    {
         return fromParam;
     }
 
     @JsonProperty("to_param")
-    public Optional<String> getToParam() {
+    public Optional<String> getToParam()
+    {
         return toParam;
     }
 
     @JsonProperty("start")
-    public int getStart() {
+    public int getStart()
+    {
         return start;
     }
 
     @JsonProperty("pages")
-    public int getPages() {
+    public int getPages()
+    {
         return pages;
     }
 
     @JsonProperty("step")
-    public int getStep() {
+    public int getStep()
+    {
         return step;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "PagerConfig{" +
                 "fromParam='" + fromParam + '\'' +
                 ", toParam=" + toParam +

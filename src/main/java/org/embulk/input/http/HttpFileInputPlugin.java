@@ -19,7 +19,14 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.embulk.config.*;
+import org.embulk.config.Config;
+import org.embulk.config.ConfigDefault;
+import org.embulk.config.ConfigDiff;
+import org.embulk.config.ConfigInject;
+import org.embulk.config.ConfigSource;
+import org.embulk.config.Task;
+import org.embulk.config.TaskReport;
+import org.embulk.config.TaskSource;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.Exec;
 import org.embulk.spi.FileInputPlugin;
@@ -36,87 +43,90 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HttpFileInputPlugin implements FileInputPlugin {
-
+public class HttpFileInputPlugin implements FileInputPlugin
+{
     private final Logger logger = Exec.getLogger(getClass());
 
-    public interface PluginTask extends Task {
+    public interface PluginTask extends Task
+    {
         @Config("url")
-        public String getUrl();
+        String getUrl();
 
         @Config("charset")
         @ConfigDefault("\"utf-8\"")
-        public String getCharset();
+        String getCharset();
 
         @Config("method")
         @ConfigDefault("\"get\"")
-        public String getMethod();
+        String getMethod();
 
         @Config("user_agent")
         @ConfigDefault("\"Embulk::Input::HttpFileInputPlugin\"")
-        public String getUserAgent();
+        String getUserAgent();
 
         @Config("open_timeout")
         @ConfigDefault("2000")
-        public int getOpenTimeout();
+        int getOpenTimeout();
 
         @Config("read_timeout")
         @ConfigDefault("10000")
-        public int getReadTimeout();
+        int getReadTimeout();
 
         @Config("max_retries")
         @ConfigDefault("5")
-        public int getMaxRetries();
+        int getMaxRetries();
 
         @Config("retry_interval")
         @ConfigDefault("10000")
-        public int getRetryInterval();
+        int getRetryInterval();
 
         @Config("request_interval")
         @ConfigDefault("0")
-        public int getRequestInterval();
+        int getRequestInterval();
 
-        public void setRequestInterval(int requestInterval);
+        void setRequestInterval(int requestInterval);
 
         @Config("interval_includes_response_time")
         @ConfigDefault("null")
-        public boolean getIntervalIncludesResponseTime();
+        boolean getIntervalIncludesResponseTime();
 
         @Config("params")
         @ConfigDefault("null")
-        public Optional<ParamsConfig> getParams();
+        Optional<ParamsConfig> getParams();
 
         @Config("basic_auth")
         @ConfigDefault("null")
-        public Optional<BasicAuthConfig> getBasicAuth();
+        Optional<BasicAuthConfig> getBasicAuth();
 
         @Config("pager")
         @ConfigDefault("null")
-        public Optional<PagerConfig> getPager();
+        Optional<PagerConfig> getPager();
 
         @Config("request_headers")
         @ConfigDefault("{}")
-        public Map<String, String> getRequestHeaders();
+        Map<String, String> getRequestHeaders();
 
         @ConfigInject
-        public BufferAllocator getBufferAllocator();
+        BufferAllocator getBufferAllocator();
 
-        public List<List<QueryConfig.Query>> getQueries();
+        List<List<QueryConfig.Query>> getQueries();
 
-        public void setQueries(List<List<QueryConfig.Query>> queries);
+        void setQueries(List<List<QueryConfig.Query>> queries);
 
-        public HttpMethod getHttpMethod();
+        HttpMethod getHttpMethod();
 
-        public void setHttpMethod(HttpMethod httpMethod);
+        void setHttpMethod(HttpMethod httpMethod);
     }
 
-    public enum HttpMethod {
+    public enum HttpMethod
+    {
         POST,
         GET
     }
 
     @Override
-    public ConfigDiff transaction(ConfigSource config, FileInputPlugin.Control control) {
+    public ConfigDiff transaction(ConfigSource config, FileInputPlugin.Control control)
+    {
         PluginTask task = config.loadConfig(PluginTask.class);
 
         final int tasks;
@@ -124,11 +134,13 @@ public class HttpFileInputPlugin implements FileInputPlugin {
             List<List<QueryConfig.Query>> queries = task.getParams().get().generateQueries(task.getPager());
             task.setQueries(queries);
             tasks = queries.size();
-        } else if (task.getPager().isPresent()) {
+        }
+        else if (task.getPager().isPresent()) {
             List<List<QueryConfig.Query>> queries = task.getPager().get().expand();
             task.setQueries(queries);
             tasks = queries.size();
-        } else {
+        }
+        else {
             task.setQueries(Lists.<List<QueryConfig.Query>>newArrayList());
             task.setRequestInterval(0);
             tasks = 1;
@@ -140,25 +152,27 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     }
 
     @Override
-    public ConfigDiff resume(TaskSource taskSource,
-            int taskCount,
-            FileInputPlugin.Control control) {
+    public ConfigDiff resume(TaskSource taskSource, int taskCount, FileInputPlugin.Control control)
+    {
         control.run(taskSource, taskCount);
         return Exec.newConfigDiff();
     }
 
     @Override
-    public void cleanup(TaskSource taskSource, int taskCount, List<TaskReport> successTaskReports) {
+    public void cleanup(TaskSource taskSource, int taskCount, List<TaskReport> successTaskReports)
+    {
     }
 
     @Override
-    public TransactionalFileInput open(TaskSource taskSource, int taskIndex) {
+    public TransactionalFileInput open(TaskSource taskSource, int taskIndex)
+    {
         PluginTask task = taskSource.loadTask(PluginTask.class);
 
         HttpRequestBase request;
         try {
             request = makeRequest(task, taskIndex);
-        } catch (URISyntaxException | UnsupportedEncodingException e) {
+        }
+        catch (URISyntaxException | UnsupportedEncodingException e) {
             throw Throwables.propagate(e);
         }
 
@@ -188,12 +202,14 @@ public class HttpFileInputPlugin implements FileInputPlugin {
             PluginFileInput input = new PluginFileInput(task, stream, startTimeMills);
             stream = null;
             return input;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw Throwables.propagate(e);
         }
     }
 
-    private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest) {
+    private CredentialsProvider makeCredentialsProvider(BasicAuthConfig config, HttpRequestBase scopeRequest)
+    {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final AuthScope authScope = new AuthScope(scopeRequest.getURI().getHost(),
                 scopeRequest.getURI().getPort());
@@ -203,7 +219,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     }
 
     private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
-            throws URISyntaxException, UnsupportedEncodingException {
+            throws URISyntaxException, UnsupportedEncodingException
+    {
         final List<QueryConfig.Query> queries = (task.getQueries().isEmpty()) ?
                 null : task.getQueries().get(taskIndex);
         if (task.getHttpMethod() == HttpMethod.GET) {
@@ -218,7 +235,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
                 request.setURI(builder.build());
             }
             return request;
-        } else if (task.getHttpMethod() == HttpMethod.POST) {
+        }
+        else if (task.getHttpMethod() == HttpMethod.POST) {
             HttpPost request = new HttpPost(task.getUrl());
             if (queries != null) {
                 List<NameValuePair> pairs = new ArrayList<>();
@@ -234,7 +252,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
         throw new IllegalArgumentException(String.format("Unsupported http method %s", task.getMethod()));
     }
 
-    private List<Header> makeHeaders(PluginTask task) {
+    private List<Header> makeHeaders(PluginTask task)
+    {
         List<Header> headers = new ArrayList<>();
         headers.add(new BasicHeader("Accept", "*/*"));
         headers.add(new BasicHeader("Accept-Charset", task.getCharset()));
@@ -247,7 +266,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
         return headers;
     }
 
-    private RequestConfig makeRequestConfig(PluginTask task) {
+    private RequestConfig makeRequestConfig(PluginTask task)
+    {
         return RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(10)
@@ -258,34 +278,39 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     }
 
     public static class PluginFileInput extends InputStreamFileInput
-            implements TransactionalFileInput {
-
+            implements TransactionalFileInput
+    {
         private final Logger logger = Exec.getLogger(getClass());
 
         private final long startTimeMills;
         private final PluginTask task;
 
-        public PluginFileInput(PluginTask task, InputStream stream, long startTimeMills) {
+        public PluginFileInput(PluginTask task, InputStream stream, long startTimeMills)
+        {
             super(task.getBufferAllocator(), new SingleFileProvider(stream));
             this.startTimeMills = startTimeMills;
             this.task = task;
         }
 
-        public TaskReport commit() {
+        public TaskReport commit()
+        {
             return Exec.newTaskReport();
         }
 
         @Override
-        public void close() {
+        public void close()
+        {
             super.close();
             handleInterval();
         }
 
         @Override
-        public void abort() {
+        public void abort()
+        {
         }
 
-        protected void handleInterval() {
+        protected void handleInterval()
+        {
             if (task.getRequestInterval() <= 0) {
                 return;
             }
@@ -297,24 +322,27 @@ public class HttpFileInputPlugin implements FileInputPlugin {
                 logger.info(String.format("waiting %d msec ...", interval));
                 try {
                     Thread.sleep(interval);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     Throwables.propagate(e);
                 }
             }
         }
 
         private static class SingleFileProvider
-                implements InputStreamFileInput.Provider {
-
+                implements InputStreamFileInput.Provider
+        {
             private final InputStream stream;
             private boolean opened = false;
 
-            public SingleFileProvider(InputStream stream) {
+            public SingleFileProvider(InputStream stream)
+            {
                 this.stream = stream;
             }
 
             @Override
-            public InputStream openNext() throws IOException {
+            public InputStream openNext() throws IOException
+            {
                 if (opened) {
                     return null;
                 }
@@ -323,7 +351,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
             }
 
             @Override
-            public void close() throws IOException {
+            public void close() throws IOException
+            {
                 if (!opened) {
                     stream.close();
                 }

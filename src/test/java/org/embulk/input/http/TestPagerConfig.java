@@ -7,10 +7,11 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class TestPagerConfig {
-
+public class TestPagerConfig
+{
     @Test
-    public void testExpandFromTo() throws Exception {
+    public void testExpandFromTo() throws Exception
+    {
         List<List<QueryConfig.Query>> dest = new PagerConfig("from", Optional.of("to"), Optional.of(1), 3,
                 Optional.of(2)).expand();
         assertEquals(dest.size(), 3);
@@ -35,7 +36,8 @@ public class TestPagerConfig {
     }
 
     @Test
-    public void testExpandFromToWithDefault() throws Exception {
+    public void testExpandFromToWithDefault() throws Exception
+    {
         Optional<Integer> nullValue = Optional.absent();
 
         List<List<QueryConfig.Query>> dest = new PagerConfig("from", Optional.of("to"), nullValue, 2, nullValue)
@@ -56,7 +58,8 @@ public class TestPagerConfig {
     }
 
     @Test
-    public void testExpandPagenate() throws Exception {
+    public void testExpandPagenate() throws Exception
+    {
         Optional<String> nullValue = Optional.absent();
         List<List<QueryConfig.Query>> dest = new PagerConfig("page", nullValue, Optional.of(1), 3,
                 Optional.of(1)).expand();
@@ -74,5 +77,4 @@ public class TestPagerConfig {
         assertEquals(dest.get(2).get(0).getName(), "page");
         assertEquals(dest.get(2).get(0).getValues()[0], "3");
     }
-
 }

@@ -8,10 +8,11 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class TestParamsConfig {
-
+public class TestParamsConfig
+{
     @Test
-    public void testUnexpandQueriesSinglePair() throws Exception {
+    public void testUnexpandQueriesSinglePair() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, false);
         QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, false);
@@ -27,7 +28,8 @@ public class TestParamsConfig {
     }
 
     @Test
-    public void testUnexpandQueriesExpandPair() throws Exception {
+    public void testUnexpandQueriesExpandPair() throws Exception
+    {
         Optional<String> nullValue = Optional.absent();
         List<String> values1 = Lists.newArrayList("a", "b");
         List<String> values2 = Lists.newArrayList("c", "d");
@@ -49,7 +51,8 @@ public class TestParamsConfig {
     }
 
     @Test
-    public void testExpandQueriesSinglePair() throws Exception {
+    public void testExpandQueriesSinglePair() throws Exception
+    {
         Optional<List<String>> nullValues = Optional.absent();
         QueryConfig q1 = new QueryConfig("test1", Optional.of("awasome1"), nullValues, true);
         QueryConfig q2 = new QueryConfig("test2", Optional.of("awasome2"), nullValues, true);
@@ -65,7 +68,8 @@ public class TestParamsConfig {
     }
 
     @Test
-    public void testExpandQueriesExpandPair() throws Exception {
+    public void testExpandQueriesExpandPair() throws Exception
+    {
         Optional<String> nullValue = Optional.absent();
         List<String> values1 = Lists.newArrayList("a", "b");
         List<String> values2 = Lists.newArrayList("c", "d");
