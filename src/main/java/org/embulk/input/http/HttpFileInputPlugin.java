@@ -324,7 +324,7 @@ public class HttpFileInputPlugin implements FileInputPlugin
                     Thread.sleep(interval);
                 }
                 catch (InterruptedException e) {
-                    Throwables.propagate(e);
+                    throw Throwables.propagate(e);
                 }
             }
         }
