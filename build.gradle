@@ -21,6 +21,7 @@ targetCompatibility = 1.7
 dependencies {
     compile  "org.embulk:embulk-core:0.8.18"
     compile  "org.apache.httpcomponents:httpclient:4.5"
+    compile  "commons-io:commons-io:2.5"
     testCompile "junit:junit:4.+"
 }
 

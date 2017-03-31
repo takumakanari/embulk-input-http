@@ -3,6 +3,7 @@ package org.embulk.input.http;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
@@ -35,12 +36,17 @@ import org.embulk.spi.util.InputStreamFileInput;
 import org.embulk.spi.util.RetryExecutor;
 import org.slf4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class HttpFileInputPlugin implements FileInputPlugin
@@ -89,6 +95,10 @@ public class HttpFileInputPlugin implements FileInputPlugin
         @Config("interval_includes_response_time")
         @ConfigDefault("null")
         boolean getIntervalIncludesResponseTime();
+
+        @Config("input_direct")
+        @ConfigDefault("true")
+        boolean getInputDirect();
 
         @Config("params")
         @ConfigDefault("null")
@@ -198,7 +208,12 @@ public class HttpFileInputPlugin implements FileInputPlugin
                     withInitialRetryWait(task.getRetryInterval()).
                     withMaxRetryWait(30 * 60 * 1000).
                     runInterruptible(retryable);
+
             InputStream stream = retryable.getResponse().getEntity().getContent();
+            if (!task.getInputDirect()) {
+                stream = copyToFile(stream);
+            }
+
             PluginFileInput input = new PluginFileInput(task, stream, startTimeMills);
             stream = null;
             return input;
@@ -206,6 +221,22 @@ public class HttpFileInputPlugin implements FileInputPlugin
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    private InputStream copyToFile(InputStream input)
+            throws IOException
+    {
+        File tmpfile = Files.createTempFile("embulk-input-http.", ".tmp").toFile();
+        tmpfile.deleteOnExit();
+
+        try (FileOutputStream output = new FileOutputStream(tmpfile)) {
+            logger.info(String.format(Locale.ENGLISH, "Writing response into %s", tmpfile));
+            IOUtils.copy(input, output);
+        } finally {
+            input.close();
+        }
+
+        return new FileInputStream(tmpfile);
     }
 
     private CredentialsProvider makeCredentialsProvider(BasicAuthOption basicAuth, HttpRequestBase request)

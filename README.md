@@ -34,14 +34,15 @@ in:
 - **method**: http method, get is used by default (optional)
 - **user_agent**: the usrr agent to specify request header (optional)
 - **request_headers**: the extra request headers as key-value (optional)
-- **charset**: charset to specify request header (optional, utf-8 is used by default)
+- **charset**: charset to specify request header (optional, default: utf8)
 - **basic_auth**: username/password for basic authentication (optional)
-- **open_timeout**: timeout msec to open connection (optional, 2000 is used by default)
-- **read_timeout**: timeout msec to read content via http (optional, 10000 is used by default)
-- **max_retries**: max number of retry request if failed (optional, 5 is used by default)
-- **retry_interval**: interval msec to retry max (optional, 10000 is used by default)
-- **request_interval**: wait msec before each requests (optional, 0 is used by default)
-- **interval\_includes\_response\_time**: yes/no, if yes and you set *request_interval*, response time will be included in interval for next request (optional, no is used by default)
+- **open_timeout**: timeout msec to open connection (optional, default: 2000)
+- **read_timeout**: timeout msec to read content via http (optional, default: 10000)
+- **max_retries**: max number of retry request if failed (optional, default: 5)
+- **retry_interval**: interval msec to retry max (optional, default: 10000)
+- **request_interval**: wait msec before each requests (optional, default: 0)
+- **interval\_includes\_response\_time**: yes/no, if yes and you set *request_interval*, response time will be included in interval for next request (optional, default: no)
+- **direct\_input**: If false, dumps content to tmp file first, to avoid read timeout due to process large data while dowoloading from remote (optional, default: true)
 
 ### Brace expansion style in 'params'
 
