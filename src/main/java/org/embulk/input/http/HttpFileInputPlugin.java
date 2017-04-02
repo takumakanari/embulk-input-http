@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class HttpFileInputPlugin implements FileInputPlugin
 {
     private final Logger logger = Exec.getLogger(getClass());
@@ -197,8 +199,7 @@ public class HttpFileInputPlugin implements FileInputPlugin
 
         HttpClient client = builder.build();
 
-        logger.info(String.format("%s \"%s\"", task.getMethod().toUpperCase(),
-                request.getURI().toString()));
+        logger.info(format(Locale.ENGLISH, "%s \"%s\"", task.getMethod().toUpperCase(), request.getURI().toString()));
 
         RetryableHandler retryable = new RetryableHandler(client, request);
         long startTimeMills = System.currentTimeMillis();
@@ -230,7 +231,7 @@ public class HttpFileInputPlugin implements FileInputPlugin
         tmpfile.deleteOnExit();
 
         try (FileOutputStream output = new FileOutputStream(tmpfile)) {
-            logger.info(String.format(Locale.ENGLISH, "Writing response into %s", tmpfile));
+            logger.info(format(Locale.ENGLISH, "Writing response to %s", tmpfile));
             IOUtils.copy(input, output);
         } finally {
             input.close();
