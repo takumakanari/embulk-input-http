@@ -13,13 +13,14 @@ configurations {
     provided
 }
 
-version = "0.0.16"
+version = "0.0.17"
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.18"
+    compile  "org.embulk:embulk-core:0.8.8"
+    provided "org.embulk:embulk-core:0.8.8"
     compile  "org.apache.httpcomponents:httpclient:4.5"
     compile  "commons-io:commons-io:2.5"
     testCompile "junit:junit:4.+"
@@ -60,11 +61,9 @@ task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
     script "pkg/${project.name}-${project.version}.gem"
 }
 
-task "package"(dependsOn: ["gemspec", "classpath"]) {
-    doLast {
-        println "> Build succeeded."
-        println "> You can run embulk with '-L ${file(".").absolutePath}' argument."
-    }
+task "package"(dependsOn: ["gemspec", "classpath"]) << {
+    println "> Build succeeded."
+    println "> You can run embulk with '-L ${file(".").absolutePath}' argument."
 }
 
 
