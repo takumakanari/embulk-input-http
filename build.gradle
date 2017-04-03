@@ -86,3 +86,4 @@ Gem::Specification.new do |spec|
 end
 /$)
 }
+clean { delete "${project.name}.gemspec" }
