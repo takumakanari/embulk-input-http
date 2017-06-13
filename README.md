@@ -42,7 +42,7 @@ in:
 - **retry_interval**: interval msec to retry max (optional, default: 10000)
 - **request_interval**: wait msec before each requests (optional, default: 0)
 - **interval\_includes\_response\_time**: yes/no, if yes and you set *request_interval*, response time will be included in interval for next request (optional, default: no)
-- **input\direct**: If false, dumps content to temp file first, to avoid read timeout due to process large data while dowoloading from remote (optional, default: true)
+- **input\_direct**: If false, dumps content to temp file first, to avoid read timeout due to process large data while dowoloading from remote (optional, default: true)
 
 ### Brace expansion style in 'params'
 
