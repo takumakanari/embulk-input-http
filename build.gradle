@@ -13,14 +13,14 @@ configurations {
     provided
 }
 
-version = "0.0.17"
+version = "0.0.18"
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.8"
-    provided "org.embulk:embulk-core:0.8.8"
+    compile  "org.embulk:embulk-core:0.8.36"
+    provided "org.embulk:embulk-core:0.8.36"
     compile  "org.apache.httpcomponents:httpclient:4.5"
     compile  "commons-io:commons-io:2.5"
     testCompile "junit:junit:4.+"
