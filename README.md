@@ -1,5 +1,7 @@
 # Embulk::Input::Http
 
+[![CircleCI](https://circleci.com/gh/takumakanari/embulk-input-http.svg?style=svg)](https://circleci.com/gh/takumakanari/embulk-input-http)
+
 Input HTTP plugin for [Embulk](https://github.com/embulk/embulk).
 Fetch data via HTTP.
 
