@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
@@ -105,6 +106,10 @@ public class HttpFileInputPlugin implements FileInputPlugin
         @Config("params")
         @ConfigDefault("null")
         Optional<ParamsOption> getParams();
+
+        @Config("request_body")
+        @ConfigDefault("null")
+        Optional<String> getRequestBody();
 
         @Config("basic_auth")
         @ConfigDefault("null")
@@ -268,7 +273,7 @@ public class HttpFileInputPlugin implements FileInputPlugin
             }
             return request;
         }
-        else if (task.getHttpMethod() == HttpMethod.POST) {
+        if (task.getHttpMethod() == HttpMethod.POST) {
             HttpPost request = new HttpPost(task.getUrl());
             if (queries != null) {
                 List<NameValuePair> pairs = new ArrayList<>();
@@ -278,6 +283,10 @@ public class HttpFileInputPlugin implements FileInputPlugin
                     }
                 }
                 request.setEntity(new UrlEncodedFormEntity(pairs));
+            }
+            else if (task.getRequestBody().isPresent()) {
+                logger.info(new StringEntity(task.getRequestBody().get()).toString());
+                request.setEntity(new StringEntity(task.getRequestBody().get()));
             }
             return request;
         }
