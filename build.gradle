@@ -69,7 +69,9 @@ task "package"(dependsOn: ["gemspec", "classpath"]) {
 }
 
 
-task gemspec << { file("${project.name}.gemspec").write($/
+task gemspec {
+    doLast {
+        file("${project.name}.gemspec").write($/
 Gem::Specification.new do |spec|
   spec.name          = "${project.name}"
   spec.version       = "${project.version}"
@@ -87,5 +89,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', ['>= 10.0']
 end
 /$)
+    }
 }
 clean { delete "${project.name}.gemspec" }
