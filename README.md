@@ -36,6 +36,7 @@ in:
 - **method**: http method, get is used by default (optional)
 - **user_agent**: the usrr agent to specify request header (optional)
 - **request_headers**: the extra request headers as key-value (optional)
+- **request_body**: the request body content, enabled if method is post and params are empty (optional)
 - **charset**: charset to specify request header (optional, default: utf8)
 - **basic_auth**: username/password for basic authentication (optional)
 - **open_timeout**: timeout msec to open connection (optional, default: 2000)

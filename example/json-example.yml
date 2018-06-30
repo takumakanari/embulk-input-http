@@ -13,6 +13,8 @@ in:
   request_interval: 600
   interval_includes_response_time: 1
   request_headers: {X-Some-Key1: some-value1, X-Some-key2: some-value2}
+#  request_body: |
+#    {"field1" : "one", "field2" : 2}
   pager: {from_param: from, to_param: to, pages: 10, step: 100}
 #  input_direct: false
   parser:
