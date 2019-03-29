@@ -80,7 +80,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Takuma kanari"]
   spec.email         = ["chemtrails.t@gmail.com"]
   spec.summary       = %q{Embulk plugin for http input}
-  spec.description   = %q{Fetch data via http}
+  spec.description   = %q{Fetch data via http(s)}
   spec.homepage      = "https://github.com/takumakanari/embulk-input-http"
   spec.license       = "MIT"
 
