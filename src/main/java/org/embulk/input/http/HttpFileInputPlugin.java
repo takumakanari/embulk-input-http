@@ -46,6 +46,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -204,13 +205,19 @@ public class HttpFileInputPlugin implements FileInputPlugin {
   }
 
   private List<Header> makeHeaders(PluginTask task) {
-    List<Header> headers = new ArrayList<>();
-    headers.add(new BasicHeader("Accept", "*/*"));
-    headers.add(new BasicHeader("Accept-Charset", task.getCharset()));
-    headers.add(new BasicHeader("Accept-Encoding", "gzip, deflate"));
-    headers.add(new BasicHeader("Accept-Language", "en-us,en;q=0.5"));
-    headers.add(new BasicHeader("User-Agent", task.getUserAgent()));
+    Map<String, String> map = new HashMap<>();
+    map.put("Accept", "*/*");
+    map.put("Accept-Charset", task.getCharset());
+    map.put("Accept-Encoding", "gzip, deflate");
+    map.put("Accept-Language", "en-us,en;q=0.5");
+    map.put("User-Agent", task.getUserAgent());
     for (Map.Entry<String, String> entry : task.getRequestHeaders().entrySet()) {
+      // Overwrite default headers by user defined headers
+      map.put(entry.getKey(), entry.getValue());
+    }
+
+    List<Header> headers = new ArrayList<>();
+    for (Map.Entry<String, String> entry : map.entrySet()) {
       headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
     }
     return headers;
