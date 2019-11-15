@@ -62,16 +62,15 @@ public class HttpFileInputPlugin implements FileInputPlugin {
 
     final int tasks;
     if (task.getParams().isPresent()) {
-      List<List<QueryOption.Query>> queries =
-          task.getParams().get().generateQueries(task.getPager());
+      List<List<Query>> queries = task.getParams().get().generateQueries(task.getPager());
       task.setQueries(queries);
       tasks = queries.size();
     } else if (task.getPager().isPresent()) {
-      List<List<QueryOption.Query>> queries = task.getPager().get().expand();
+      List<List<Query>> queries = task.getPager().get().expand();
       task.setQueries(queries);
       tasks = queries.size();
     } else {
-      task.setQueries(Lists.<List<QueryOption.Query>>newArrayList());
+      task.setQueries(Lists.<List<Query>>newArrayList());
       task.setRequestInterval(0);
       tasks = 1;
     }
@@ -169,13 +168,13 @@ public class HttpFileInputPlugin implements FileInputPlugin {
 
   private HttpRequestBase makeRequest(PluginTask task, int taskIndex)
       throws URISyntaxException, UnsupportedEncodingException {
-    final List<QueryOption.Query> queries =
+    final List<Query> queries =
         (task.getQueries().isEmpty()) ? null : task.getQueries().get(taskIndex);
     if (task.getHttpMethod() == HttpMethod.GET) {
       HttpGet request = new HttpGet(task.getUrl());
       if (queries != null) {
         URIBuilder builder = new URIBuilder(request.getURI());
-        for (QueryOption.Query q : queries) {
+        for (Query q : queries) {
           for (String v : q.getValues()) {
             builder.addParameter(q.getName(), v);
           }
@@ -188,7 +187,7 @@ public class HttpFileInputPlugin implements FileInputPlugin {
       HttpPost request = new HttpPost(task.getUrl());
       if (queries != null) {
         List<NameValuePair> pairs = new ArrayList<>();
-        for (QueryOption.Query q : queries) {
+        for (Query q : queries) {
           for (String v : q.getValues()) {
             pairs.add(new BasicNameValuePair(q.getName(), v));
           }
@@ -307,9 +306,9 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     @ConfigInject
     BufferAllocator getBufferAllocator();
 
-    List<List<QueryOption.Query>> getQueries();
+    List<List<Query>> getQueries();
 
-    void setQueries(List<List<QueryOption.Query>> queries);
+    void setQueries(List<List<Query>> queries);
 
     HttpMethod getHttpMethod();
 

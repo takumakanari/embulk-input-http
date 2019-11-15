@@ -28,16 +28,16 @@ public class PagerOption {
     this.step = step.or(1);
   }
 
-  public List<List<QueryOption.Query>> expand() {
-    List<List<QueryOption.Query>> queries = new ArrayList<>();
+  public List<List<Query>> expand() {
+    List<List<Query>> queries = new ArrayList<>();
     int p = 1;
     int index = start;
     while (p <= pages) {
-      List<QueryOption.Query> one = new ArrayList<>();
-      one.add(new QueryOption.Query(fromParam, Integer.toString(index)));
+      List<Query> one = new ArrayList<>();
+      one.add(new Query(fromParam, Integer.toString(index)));
       if (toParam.isPresent()) {
         int t = index + step - 1;
-        one.add(new QueryOption.Query(toParam.get(), Integer.toString(t)));
+        one.add(new Query(toParam.get(), Integer.toString(t)));
         index = t + 1;
       } else {
         index += step;

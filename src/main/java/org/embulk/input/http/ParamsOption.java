@@ -21,8 +21,8 @@ public class ParamsOption {
     return queries;
   }
 
-  public List<List<QueryOption.Query>> generateQueries(Optional<PagerOption> pagerOption) {
-    List<List<QueryOption.Query>> base = new ArrayList<>(queries.size());
+  public List<List<Query>> generateQueries(Optional<PagerOption> pagerOption) {
+    List<List<Query>> base = new ArrayList<>(queries.size());
     for (QueryOption p : queries) {
       base.add(p.expand());
     }
@@ -31,17 +31,17 @@ public class ParamsOption {
     int baseSize = base.size();
     for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) {}
 
-    List<List<QueryOption.Query>> expands = new ArrayList<>(productSize);
+    List<List<Query>> expands = new ArrayList<>(productSize);
     for (int i = 0; i < productSize; i++) {
       int j = 1;
-      List<QueryOption.Query> one = new ArrayList<>();
-      for (List<QueryOption.Query> list : base) {
-        QueryOption.Query pc = list.get((i / j) % list.size());
+      List<Query> one = new ArrayList<>();
+      for (List<Query> list : base) {
+        Query pc = list.get((i / j) % list.size());
         one.add(pc);
         j *= list.size();
       }
       if (pagerOption.isPresent()) {
-        for (List<QueryOption.Query> q : pagerOption.get().expand()) {
+        for (List<Query> q : pagerOption.get().expand()) {
           expands.add(copyAndConcat(one, q));
         }
       } else {
@@ -69,10 +69,10 @@ public class ParamsOption {
     return Objects.hashCode(queries);
   }
 
-  private List<QueryOption.Query> copyAndConcat(List<QueryOption.Query>... srcs) {
-    List<QueryOption.Query> dest = new ArrayList<>();
-    for (List<QueryOption.Query> src : srcs) {
-      for (QueryOption.Query q : src) {
+  private List<Query> copyAndConcat(List<Query>... srcs) {
+    List<Query> dest = new ArrayList<>();
+    for (List<Query> src : srcs) {
+      for (Query q : src) {
         dest.add(q.copy());
       }
     }

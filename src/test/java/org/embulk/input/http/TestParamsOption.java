@@ -16,7 +16,7 @@ public class TestParamsOption {
     QueryOption q2 = new QueryOption("test2", Optional.of("awasome2"), nullValues, false);
     ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
     Optional<PagerOption> pagerOption = Optional.absent();
-    List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
+    List<List<Query>> dest = paramsOption.generateQueries(pagerOption);
     assertEquals(dest.size(), 1);
     assertEquals(dest.get(0).size(), 2);
     assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -36,7 +36,7 @@ public class TestParamsOption {
 
     ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
     Optional<PagerOption> pagerOption = Optional.absent();
-    List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
+    List<List<Query>> dest = paramsOption.generateQueries(pagerOption);
     assertEquals(dest.size(), 1);
     assertEquals(dest.get(0).size(), 2);
     assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -54,7 +54,7 @@ public class TestParamsOption {
     QueryOption q2 = new QueryOption("test2", Optional.of("awasome2"), nullValues, true);
     ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
     Optional<PagerOption> pagerOption = Optional.absent();
-    List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
+    List<List<Query>> dest = paramsOption.generateQueries(pagerOption);
     assertEquals(dest.size(), 1);
     assertEquals(dest.get(0).size(), 2);
     assertEquals(dest.get(0).get(0).getName(), "test1");
@@ -74,7 +74,7 @@ public class TestParamsOption {
 
     ParamsOption paramsOption = new ParamsOption(Lists.newArrayList(q1, q2));
     Optional<PagerOption> pagerOption = Optional.absent();
-    List<List<QueryOption.Query>> dest = paramsOption.generateQueries(pagerOption);
+    List<List<Query>> dest = paramsOption.generateQueries(pagerOption);
     assertEquals(dest.size(), 4);
 
     assertEquals(dest.get(0).size(), 2);

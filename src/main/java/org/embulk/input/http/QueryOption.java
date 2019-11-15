@@ -6,7 +6,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class QueryOption {
@@ -94,28 +93,6 @@ public class QueryOption {
   @Override
   public String toString() {
     return String.format("ParameterConfig[%s, %s, %s]", getName(), getValue(), isExpand());
-  }
-
-  public static class Query {
-    private final String name;
-    private final String[] values;
-
-    public Query(@JsonProperty("name") String name, @JsonProperty("values") String... values) {
-      this.name = name;
-      this.values = values;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public String[] getValues() {
-      return values;
-    }
-
-    public Query copy() {
-      return new Query(this.name, Arrays.copyOf(this.values, this.values.length));
-    }
   }
 
   private static class BraceExpansion {
