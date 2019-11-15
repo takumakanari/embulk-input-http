@@ -3,20 +3,25 @@ exec: {}
 in:
   type: http
   url: http://express.heartrails.com/api/json
+  #  url: https://example.com/users/{id}
   params:
     - {name: method, value: getStations}
     - {name: x, value: 135.0}
     - {name: y, value: "{35,34}.0", expand: 1}
+  #  path_params:
+  #    - {name: id, value: 1}
+  #    - {name: name, values: [1,2,3]}
+  #    - {name: age, value: "{1..10}", epand: 1}
   method: get
   user_agent: example_json
   charset: utf8
   request_interval: 600
   interval_includes_response_time: 1
   request_headers: {X-Some-Key1: some-value1, X-Some-key2: some-value2}
-#  request_body: |
-#    {"field1" : "one", "field2" : 2}
+  #  request_body: |
+  #    {"field1" : "one", "field2" : 2}
   pager: {from_param: from, to_param: to, pages: 10, step: 100}
-#  input_direct: false
+  #  input_direct: false
   parser:
     type: none
 

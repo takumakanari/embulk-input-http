@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParamsOption {
+
   private final List<QueryOption> queries;
 
   @JsonCreator

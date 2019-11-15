@@ -287,6 +287,10 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     @ConfigDefault("null")
     Optional<ParamsOption> getParams();
 
+    @Config("path_params")
+    @ConfigDefault("null")
+    Optional<ParamsOption> getPathParams();
+
     @Config("request_body")
     @ConfigDefault("null")
     Optional<String> getRequestBody();
