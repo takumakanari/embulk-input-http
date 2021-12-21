@@ -2,10 +2,14 @@ package org.embulk.input.http;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
+
+import java.util.Locale;
+import java.util.Objects;
 
 public class BasicAuthOption {
+
   private final String user;
+
   private final String password;
 
   @JsonCreator
@@ -27,11 +31,11 @@ public class BasicAuthOption {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(user, password);
+    return Objects.hash(user, password);
   }
 
   @Override
   public String toString() {
-    return String.format("BasicAuthOption[%s, %s]", getUser(), getPassword());
+    return String.format(Locale.ENGLISH, "Basic authentication option of user:%s", getUser());
   }
 }
