@@ -29,12 +29,12 @@ in:
   method: get
 ```
 
-- **type**: specify this plugin as *http*
+- **type**: specify this plugin as `http`
 - **url**: base url something like api (required)
 - **params**: pair of name/value to specify query parameter (optional)
 - **pager**: configuration to parameterize paging (optional)
 - **method**: http method, get is used by default (optional)
-- **user_agent**: the usrr agent to specify request header (optional)
+- **user_agent**: the user agent to specify request header (optional)
 - **request_headers**: the extra request headers as key-value (optional)
 - **request_body**: the request body content, enabled if method is post and params are empty (optional)
 - **charset**: charset to specify request header (optional, default: utf8)
@@ -44,14 +44,14 @@ in:
 - **max_retries**: max number of retry request if failed (optional, default: 5)
 - **retry_interval**: interval msec to retry max (optional, default: 10000)
 - **request_interval**: wait msec before each requests (optional, default: 0)
-- **interval\_includes\_response\_time**: yes/no, if yes and you set *request_interval*, response time will be included in interval for next request (optional, default: no)
-- **input\_direct**: If false, dumps content to temp file first, to avoid read timeout due to process large data while dowoloading from remote (optional, default: true)
+- **interval\_includes\_response\_time**: yes/no, if yes and you set `request_interval`, response time will be included in interval for next request (optional, default: no)
+- **input\_direct**: If false, dumps content to temp file first, to avoid read timeout due to process large data while downloading from remote (optional, default: true)
 
-### Brace expansion style in 'params'
+### Defining multiple requests in `params`
 
-In *params* section, you can specify also multilple requests by using **values** or **brace expansion style** with set **expand** true.
+To defining multiple requests in `params` by using  `values` or `brace expansion` with setting `expand: true`.
 
-The configuration using **values** is as below:
+Simply using `values` array is as below:
 
 ```yaml
 params:
@@ -59,8 +59,7 @@ params:
   - {name: name, values: ["John", "Paul", "George", "Ringo"], expand: true}
 ```
 
-Also You can rewrite this configuration by using **brace expansion style** like as follows:
-
+The `values` is also rewritable with  `brace expansion` like as follows:
 
 ```yaml
 params:
@@ -68,13 +67,9 @@ params:
   - {name: name, value "{John,Paul,George,Ringo}", expand: true}
 ```
 
-Then all patterns of query will be called in a defferent request.
+### Basic authentication
 
-By default, **expand** is false. In this case, all values will be multiple params in one request.
-
-### Use basic authentication
-
-You can specify username/password for basic authentication.
+The following is configuring username/password for the basic authentication.
 
 ```yaml
 basic_auth:
@@ -82,9 +77,9 @@ basic_auth:
  password: MyPassword
 ```
 
-### Paging by 'pager'
+### Paginate by `pager`
 
-You can configure request parameters for paging requests, like as follows:
+Configure like as follows to easily paginate a request:
 
 ```yaml
 in:
@@ -101,36 +96,31 @@ Properties of pager is as below:
 - **start**: first index number (optional, 0 is used by default)
 - **step**: size to increment (optional, 1 is used by default)
 
-#### Examples of 'pager'
+#### Examples of using `pager`
 
-#### Conbination of from/to parameters.
+1. Combination of `from` and `to`
 
-```yaml
-pager: {from_param: from, to_param: to, pages: 4, start: 1, step: 10}
-```
+    ```yaml
+    pager: {from_param: from, to_param: to, pages: 4, start: 1, step: 10}
+    ```
+ 
+    1. ?from=1&to=10
+    1. ?from=11&to=20
+    1. ?from=21&to=30
+    1. ?from=31&to=40
 
-the request parameters will be:
+1. Increment page parameter
 
-1. ?from=1&to=10
-2. ?from=11&to=20
-3. ?from=21&to=30
-4. ?from=31&to=40
+    ```yaml
+    params:
+      - {name: size, value: 100}
+    pager: {from_param: page, pages: 4, start: 1, step: 1}
+    ```
 
-
-##### Batch request with incremental page parameter.
-
-```yaml
-params:
-  - {name: size, value: 100}
-pager: {from_param: page, pages: 4, start: 1, step: 1}
-```
-
-the request parameters will be:
-
-1. ?page=1&size=100
-2. ?page=2&size=100
-3. ?page=3&size=100
-4. ?page=4&size=100
+    1. ?page=1&size=100
+    1. ?page=2&size=100
+    1. ?page=3&size=100
+    1. ?page=4&size=100
 
 
 ## Example
