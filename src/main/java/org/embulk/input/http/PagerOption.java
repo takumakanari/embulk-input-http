@@ -2,30 +2,35 @@ package org.embulk.input.http;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PagerOption {
+
   private final String fromParam;
-  private final Optional<String> toParam;
+
+  private final String toParam;
+
   private final int start;
+
   private final int pages;
+
   private final int step;
 
   @JsonCreator
   public PagerOption(
       @JsonProperty("from_param") String fromParam,
-      @JsonProperty("to_param") Optional<String> toParam,
-      @JsonProperty("start") Optional<Integer> start,
+      @JsonProperty("to_param") String toParam,
+      @JsonProperty("start") int start,
       @JsonProperty("pages") int pages,
-      @JsonProperty("step") Optional<Integer> step) {
+      @JsonProperty("step") Integer step) {
     this.fromParam = fromParam;
     this.toParam = toParam;
-    this.start = start.or(0);
+    this.start = start;
     this.pages = pages;
-    this.step = step.or(1);
+    this.step = step == null ? 1 : step;
   }
 
   public List<List<QueryOption.Query>> expand() {
@@ -35,9 +40,9 @@ public class PagerOption {
     while (p <= pages) {
       List<QueryOption.Query> one = new ArrayList<>();
       one.add(new QueryOption.Query(fromParam, Integer.toString(index)));
-      if (toParam.isPresent()) {
+      if (toParam != null) {
         int t = index + step - 1;
-        one.add(new QueryOption.Query(toParam.get(), Integer.toString(t)));
+        one.add(new QueryOption.Query(toParam, Integer.toString(t)));
         index = t + 1;
       } else {
         index += step;
@@ -54,7 +59,7 @@ public class PagerOption {
   }
 
   @JsonProperty("to_param")
-  public Optional<String> getToParam() {
+  public String getToParam() {
     return toParam;
   }
 

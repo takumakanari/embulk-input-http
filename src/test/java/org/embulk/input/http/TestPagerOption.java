@@ -1,6 +1,5 @@
 package org.embulk.input.http;
 
-import com.google.common.base.Optional;
 import org.junit.Test;
 
 import java.util.List;
@@ -9,9 +8,8 @@ import static org.junit.Assert.assertEquals;
 
 public class TestPagerOption {
   @Test
-  public void testExpandFromTo() throws Exception {
-    List<List<QueryOption.Query>> dest =
-        new PagerOption("from", Optional.of("to"), Optional.of(1), 3, Optional.of(2)).expand();
+  public void testExpandFromTo() {
+    List<List<QueryOption.Query>> dest = new PagerOption("from", "to", 1, 3, 2).expand();
     assertEquals(dest.size(), 3);
 
     assertEquals(dest.get(0).size(), 2);
@@ -34,11 +32,8 @@ public class TestPagerOption {
   }
 
   @Test
-  public void testExpandFromToWithDefault() throws Exception {
-    Optional<Integer> nullValue = Optional.absent();
-
-    List<List<QueryOption.Query>> dest =
-        new PagerOption("from", Optional.of("to"), nullValue, 2, nullValue).expand();
+  public void testExpandFromToWithDefault() {
+    List<List<QueryOption.Query>> dest = new PagerOption("from", "to", 0, 2, null).expand();
     assertEquals(dest.size(), 2);
 
     assertEquals(dest.get(0).size(), 2);
@@ -55,10 +50,8 @@ public class TestPagerOption {
   }
 
   @Test
-  public void testExpandPagenate() throws Exception {
-    Optional<String> nullValue = Optional.absent();
-    List<List<QueryOption.Query>> dest =
-        new PagerOption("page", nullValue, Optional.of(1), 3, Optional.of(1)).expand();
+  public void testExpandPagenate() {
+    List<List<QueryOption.Query>> dest = new PagerOption("page", null, 1, 3, 1).expand();
     assertEquals(dest.size(), 3);
 
     assertEquals(dest.get(0).size(), 1);

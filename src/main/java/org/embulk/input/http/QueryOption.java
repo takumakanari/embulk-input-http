@@ -2,24 +2,29 @@ package org.embulk.input.http;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class QueryOption {
+
   private final String name;
-  private final Optional<String> value;
-  private final Optional<List<String>> values;
+
+  private final String value;
+
+  private final List<String> values;
+
   private final boolean expand;
 
   @JsonCreator
   public QueryOption(
       @JsonProperty("name") String name,
-      @JsonProperty("value") Optional<String> value,
-      @JsonProperty("values") Optional<List<String>> values,
+      @JsonProperty("value") String value,
+      @JsonProperty("values") List<String> values,
       @JsonProperty("expand") boolean expand) {
     this.name = name;
     this.value = value;
@@ -28,33 +33,21 @@ public class QueryOption {
   }
 
   public List<Query> expand() {
-    List<Query> dest;
-    if (value.isPresent()) {
-      if (expand) {
-        List<String> expanded = BraceExpansion.expand(value.get());
-        dest = new ArrayList<>(expanded.size());
-        for (String s : expanded) {
-          dest.add(new Query(name, s));
-        }
-      } else {
-        dest = new ArrayList<>(1);
-        dest.add(new Query(name, value.get()));
-      }
-    } else if (values.isPresent()) {
-      if (expand) {
-        dest = new ArrayList<>(values.get().size());
-        for (String s : values.get()) {
-          dest.add(new Query(name, s));
-        }
-      } else {
-        dest = new ArrayList<>(1);
-        final String[] valueArr = values.get().toArray(new String[values.get().size()]);
-        dest.add(new Query(name, valueArr));
-      }
-    } else {
-      throw new IllegalArgumentException("value or values must be specified to 'params'");
+    if (value != null) {
+      return expand
+          ? Collections.unmodifiableList(
+              BraceExpansion.expand(value).stream()
+                  .map(e -> new Query(name, e))
+                  .collect(Collectors.toList()))
+          : Collections.singletonList(new Query(name, value));
     }
-    return dest;
+    if (values != null) {
+      return expand
+          ? Collections.unmodifiableList(
+              values.stream().map(e -> new Query(name, e)).collect(Collectors.toList()))
+          : Collections.singletonList(new Query(name, values.toArray(new String[values.size()])));
+    }
+    throw new IllegalStateException("params: value or values is required.");
   }
 
   @JsonProperty("name")
@@ -63,7 +56,7 @@ public class QueryOption {
   }
 
   @JsonProperty("value")
-  public Optional<String> getValue() {
+  public String getValue() {
     return value;
   }
 
@@ -81,14 +74,14 @@ public class QueryOption {
       return false;
     }
     QueryOption other = (QueryOption) obj;
-    return Objects.equal(this.name, other.name)
-        && Objects.equal(value, other.value)
-        && Objects.equal(expand, other.expand);
+    return Objects.equals(this.name, other.name)
+        && Objects.equals(value, other.value)
+        && Objects.equals(expand, other.expand);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(name, value, expand);
+    return Objects.hash(name, value, expand);
   }
 
   @Override
@@ -97,12 +90,18 @@ public class QueryOption {
   }
 
   public static class Query {
+
     private final String name;
+
     private final String[] values;
 
     public Query(@JsonProperty("name") String name, @JsonProperty("values") String... values) {
       this.name = name;
       this.values = values;
+    }
+
+    public Query copy() {
+      return new Query(this.name, Arrays.copyOf(this.values, this.values.length));
     }
 
     public String getName() {
@@ -112,15 +111,12 @@ public class QueryOption {
     public String[] getValues() {
       return values;
     }
-
-    public Query copy() {
-      return new Query(this.name, Arrays.copyOf(this.values, this.values.length));
-    }
   }
 
   private static class BraceExpansion {
-    public static List<String> expand(String s) {
-      return expandRecursive("", s, "", new ArrayList<String>());
+
+    private static List<String> expand(String s) {
+      return expandRecursive("", s, "", new ArrayList<>());
     }
 
     private static List<String> expandRecursive(
@@ -163,7 +159,8 @@ public class QueryOption {
           expandRecursive(prefix + s.substring(0, i1), m, s.substring(i2 + 1) + suffix, dest);
         }
       }
-      return dest;
+
+      return Collections.unmodifiableList(dest);
     }
   }
 }

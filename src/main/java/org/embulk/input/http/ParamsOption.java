@@ -2,13 +2,16 @@ package org.embulk.input.http;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ParamsOption {
+
   private final List<QueryOption> queries;
 
   @JsonCreator
@@ -16,20 +19,14 @@ public class ParamsOption {
     this.queries = queries;
   }
 
-  @JsonValue
-  public List<QueryOption> getQueries() {
-    return queries;
-  }
-
-  public List<List<QueryOption.Query>> generateQueries(Optional<PagerOption> pagerOption) {
-    List<List<QueryOption.Query>> base = new ArrayList<>(queries.size());
-    for (QueryOption p : queries) {
-      base.add(p.expand());
-    }
+  public List<List<QueryOption.Query>> generateQueries(PagerOption pagerOption) {
+    List<List<QueryOption.Query>> base =
+        queries.stream().map(QueryOption::expand).collect(Collectors.toList());
 
     int productSize = 1;
-    int baseSize = base.size();
-    for (int i = 0; i < baseSize; productSize *= base.get(i).size(), i++) {}
+    for (List<QueryOption.Query> queryList : base) {
+      productSize *= queryList.size();
+    }
 
     List<List<QueryOption.Query>> expands = new ArrayList<>(productSize);
     for (int i = 0; i < productSize; i++) {
@@ -40,16 +37,21 @@ public class ParamsOption {
         one.add(pc);
         j *= list.size();
       }
-      if (pagerOption.isPresent()) {
-        for (List<QueryOption.Query> q : pagerOption.get().expand()) {
-          expands.add(copyAndConcat(one, q));
+      if (pagerOption != null) {
+        for (List<QueryOption.Query> q : pagerOption.expand()) {
+          expands.add(flattenMerge(Arrays.asList(one, q)));
         }
       } else {
         expands.add(one);
       }
     }
 
-    return expands;
+    return Collections.unmodifiableList(expands);
+  }
+
+  @JsonValue
+  public List<QueryOption> getQueries() {
+    return queries;
   }
 
   @Override
@@ -61,7 +63,7 @@ public class ParamsOption {
       return false;
     }
     ParamsOption other = (ParamsOption) obj;
-    return Objects.equal(queries, other.queries);
+    return Objects.equals(queries, other.queries);
   }
 
   @Override
@@ -69,13 +71,9 @@ public class ParamsOption {
     return Objects.hashCode(queries);
   }
 
-  private List<QueryOption.Query> copyAndConcat(List<QueryOption.Query>... srcs) {
-    List<QueryOption.Query> dest = new ArrayList<>();
-    for (List<QueryOption.Query> src : srcs) {
-      for (QueryOption.Query q : src) {
-        dest.add(q.copy());
-      }
-    }
-    return dest;
+  private List<QueryOption.Query> flattenMerge(List<List<QueryOption.Query>> sources) {
+    return sources.stream()
+        .flatMap(s -> s.stream().map(QueryOption.Query::copy))
+        .collect(Collectors.toList());
   }
 }
