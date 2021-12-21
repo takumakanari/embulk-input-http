@@ -128,10 +128,8 @@ public class HttpFileInputPlugin implements FileInputPlugin {
               .runInterruptible(new RetryableHandler(builder.build(), request))
               .getEntity()
               .getContent();
-      if (!task.getInputDirect()) {
-        stream = copyToFile(stream);
-      }
-      return new PluginFileInput(task, stream, startTimeMills);
+      return new PluginFileInput(
+          task, task.getInputDirect() ? stream : copyToFile(stream), startTimeMills);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -314,22 +312,19 @@ public class HttpFileInputPlugin implements FileInputPlugin {
     @Override
     public void close() {
       super.close();
-      handleInterval();
+      sleepByInterval();
     }
 
     @Override
     public void abort() {}
 
-    protected void handleInterval() {
-      if (task.getRequestInterval() <= 0) {
-        return;
-      }
-      long interval = task.getRequestInterval();
-      if (task.getIntervalIncludesResponseTime()) {
-        interval = interval - (System.currentTimeMillis() - startTimeMills);
-      }
+    private void sleepByInterval() {
+      final long interval =
+          task.getIntervalIncludesResponseTime()
+              ? task.getRequestInterval() - (System.currentTimeMillis() - startTimeMills)
+              : task.getRequestInterval();
       if (interval > 0) {
-        LOGGER.info(String.format("waiting %d msec ...", interval));
+        LOGGER.info(String.format("Waiting %d milli sec ...", interval));
         try {
           Thread.sleep(interval);
         } catch (InterruptedException e) {
