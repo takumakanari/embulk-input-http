@@ -35,20 +35,20 @@ public class PagerOption {
 
   public List<List<QueryOption.Query>> expand() {
     List<List<QueryOption.Query>> queries = new ArrayList<>();
-    int p = 1;
+    int page = 1;
     int index = start;
-    while (p <= pages) {
+    while (page <= pages) {
       List<QueryOption.Query> one = new ArrayList<>();
       one.add(new QueryOption.Query(fromParam, Integer.toString(index)));
       if (toParam != null) {
-        int t = index + step - 1;
-        one.add(new QueryOption.Query(toParam, Integer.toString(t)));
-        index = t + 1;
+        int to = index + step - 1;
+        one.add(new QueryOption.Query(toParam, Integer.toString(to)));
+        index = to + 1;
       } else {
         index += step;
       }
       queries.add(one);
-      p++;
+      page++;
     }
     return queries;
   }

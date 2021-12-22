@@ -30,12 +30,12 @@ public class ParamsOption {
 
     List<List<QueryOption.Query>> expands = new ArrayList<>(productSize);
     for (int i = 0; i < productSize; i++) {
-      int j = 1;
+      int exp = 1;
       List<QueryOption.Query> one = new ArrayList<>();
       for (List<QueryOption.Query> list : base) {
-        QueryOption.Query pc = list.get((i / j) % list.size());
+        QueryOption.Query pc = list.get((i / exp) % list.size());
         one.add(pc);
-        j *= list.size();
+        exp *= list.size();
       }
       if (pagerOption != null) {
         for (List<QueryOption.Query> q : pagerOption.expand()) {

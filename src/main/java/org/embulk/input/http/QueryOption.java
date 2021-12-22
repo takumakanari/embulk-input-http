@@ -115,30 +115,30 @@ public class QueryOption {
 
   private static class BraceExpansion {
 
-    private static List<String> expand(String s) {
-      return expandRecursive("", s, "", new ArrayList<>());
+    private static List<String> expand(String source) {
+      return expandRecursive("", source, "", new ArrayList<>());
     }
 
     private static List<String> expandRecursive(
-        String prefix, String s, String suffix, List<String> dest) {
+        String prefix, String source, String suffix, List<String> dest) {
       // used the code below as reference.
       //  http://rosettacode.org/wiki/Brace_expansion#Java
       int i1 = -1;
       int i2 = 0;
-      String noEscape = s.replaceAll("([\\\\]{2}|[\\\\][,}{])", "  ");
+      String noEscape = source.replaceAll("([\\\\]{2}|[\\\\][,}{])", "  ");
       StringBuilder sb = null;
 
       outer:
       while ((i1 = noEscape.indexOf('{', i1 + 1)) != -1) {
         i2 = i1 + 1;
-        sb = new StringBuilder(s);
-        for (int depth = 1; i2 < s.length() && depth > 0; i2++) {
-          char c = noEscape.charAt(i2);
-          depth = (c == '{') ? ++depth : depth;
-          depth = (c == '}') ? --depth : depth;
-          if (c == ',' && depth == 1) {
+        sb = new StringBuilder(source);
+        for (int depth = 1; i2 < source.length() && depth > 0; i2++) {
+          char ch = noEscape.charAt(i2);
+          depth = (ch == '{') ? ++depth : depth;
+          depth = (ch == '}') ? --depth : depth;
+          if (ch == ',' && depth == 1) {
             sb.setCharAt(i2, '\u0000');
-          } else if (c == '}' && depth == 0 && sb.indexOf("\u0000") != -1) {
+          } else if (ch == '}' && depth == 0 && sb.indexOf("\u0000") != -1) {
             break outer;
           }
         }
@@ -146,17 +146,18 @@ public class QueryOption {
 
       if (i1 == -1) {
         if (suffix.length() > 0) {
-          expandRecursive(prefix + s, suffix, "", dest);
+          expandRecursive(prefix + source, suffix, "", dest);
         } else {
           final String out =
-              String.format("%s%s%s", prefix, s, suffix)
+              String.format("%s%s%s", prefix, source, suffix)
                   .replaceAll("[\\\\]{2}", "\\")
                   .replaceAll("[\\\\]([,}{])", "$1");
           dest.add(out);
         }
       } else {
         for (String m : sb.substring(i1 + 1, i2).split("\u0000", -1)) {
-          expandRecursive(prefix + s.substring(0, i1), m, s.substring(i2 + 1) + suffix, dest);
+          expandRecursive(
+              prefix + source.substring(0, i1), m, source.substring(i2 + 1) + suffix, dest);
         }
       }
 
